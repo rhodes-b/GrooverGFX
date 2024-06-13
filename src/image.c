@@ -37,6 +37,26 @@ static void _save_image(struct Image* img, char *fname) {
     close(fd);
 }
 
+static inline uint32_t _locate_pos(struct Image* img, struct Point pt) {
+    return ((img->height - 1 - pt.y) * 3 * img->width) + (pt.x * 3);
+}
+
+static void _set_pix(struct Image* img, struct Point pt, uint8_t r, uint8_t g, uint8_t b) {
+    uint32_t arr_pos = _locate_pos(img, pt);
+    img->pixels[arr_pos+0] = r;
+    img->pixels[arr_pos+1] = g;
+    img->pixels[arr_pos+2] = b;
+}
+
+static struct Pixel _get_pix(struct Image* img, struct Point pt) {
+    uint16_t arr_pos = _locate_pos(img, pt);
+    return (struct Pixel) {
+        .r = img->pixels[arr_pos+0],
+        .g = img->pixels[arr_pos+1],
+        .b = img->pixels[arr_pos+2],
+    };
+}
+
 // TODO: static memory allocation?
 // IE have a max array size in each image and warn if they are too big
 struct Image make_image(uint16_t width, uint16_t height) {
@@ -49,6 +69,8 @@ struct Image make_image(uint16_t width, uint16_t height) {
         .pixels = buff,
         .width = width,
         .height = height,
+        .get_pixel = _get_pix,
+        .set_pixel = _set_pix,
         .load = _load_image,
         .save = _save_image,
     };
