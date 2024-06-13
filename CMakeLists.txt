@@ -1,13 +1,18 @@
-# add src directory
-add_subdirectory(src)
+cmake_minimum_required(VERSION 3.22)
+set(PROJECT groover-gfx)
+project(${PROJECT})
 
-# TODO:
-# add_subdirectory(tests)
+set(CMAKE_BUILD_TYPE Debug)
 
-add_executable(groover-gfx
+add_executable(${PROJECT}
     main.c
 )
 
-target_link_libraries(groover-gfx
+target_link_libraries(${PROJECT}
     groover-image
+    groover-painter
 )
+
+add_subdirectory(src)
+# TODO:
+# add_subdirectory(tests)

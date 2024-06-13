@@ -4,10 +4,14 @@
 
 #include <stdint.h>
 
+struct PointI16 {
+    int16_t x;
+    int16_t y;
+};
 
-struct Point {
-    uint16_t x;
-    uint16_t y;
+struct PointF32 {
+    float x;
+    float y;
 };
 
 // TODO: use this might be very verbose
@@ -25,8 +29,8 @@ struct Image {
     uint16_t height;
 
     // pixel array accessor functions
-    struct Pixel (*get_pixel)(struct Image* img, struct Point pt);
-    void (*set_pixel)(struct Image* img, struct Point pt, uint8_t r, uint8_t g, uint8_t b);
+    struct Pixel (*get_pixel)(struct Image* img, struct PointI16 pt);
+    void (*set_pixel)(struct Image* img, struct PointI16 pt, struct Pixel pix);
 
     // load a ppm file this will update the width and height accordingly
     void (*load)(struct Image* img, char* fname);
