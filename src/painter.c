@@ -27,7 +27,13 @@ static struct PointI16 pix_loc(struct PointF32 pt) {
 
 static void draw_pt(struct Painter* painter, struct PointF32 pt) {
     struct PointI16 rounded_pt = pix_loc(pt);
-    painter->image.set_pixel(&painter->image, rounded_pt, painter->color);
+    if((rounded_pt.x > 0) && 
+       (rounded_pt.x < painter->image.width-1) &&
+       (rounded_pt.y > 0) &&
+       (rounded_pt.y < painter->image.height-1)
+      ) {
+        painter->image.set_pixel(&painter->image, rounded_pt, painter->color);
+       }
 }
 
 
@@ -125,8 +131,8 @@ static void barycentric_draw(struct Painter* painter, struct PointF32 p1, struct
         for(int16_t y=min_y; y < max_y+1; y++) {
             float alpha = (float)line_fn(b, c, (struct PointI16){ .x = x, .y = y}) / line_fn(b, c, a);
             float beta = (float)line_fn(a, c, (struct PointI16){ .x = x, .y = y}) / line_fn(a, c, b);
-            float gamma = (1 - alpha - beta);
-            if((alpha >= 0) && (beta >= 0) && (gamma >= 0)) {
+            float gamma = (1. - alpha - beta);
+            if((alpha >= 0) && (beta >= 0) && (gamma >= -0.0000001)) {
                 painter->draw_point(painter, (struct PointF32){ .x = (float)x, .y = (float)y });
             }
         }

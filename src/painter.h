@@ -22,4 +22,4 @@ struct Painter {
 struct Painter make_painter(struct Image* img);
 
 
-#endif /* _GROOVER_PAINTEr_H */
+#endif /* _GROOVER_PAINTER_H */
