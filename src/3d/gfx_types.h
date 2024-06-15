@@ -4,14 +4,28 @@
 
 #include <stdint.h>
 
-struct PointI16 {
+struct Point2I16 {
     int16_t x;
     int16_t y;
+    int16_t z;
 };
 
-struct PointF32 {
+struct Point2F32 {
     float x;
     float y;
+    float z;
+};
+
+struct Point3I16 {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+};
+
+struct Point3F32 {
+    float x;
+    float y;
+    float z;
 };
 
 // TODO: use this might be very verbose

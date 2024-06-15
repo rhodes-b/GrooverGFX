@@ -4,10 +4,6 @@
 #include "matrix.h"
 #include <stdio.h>
 
-static inline float degrees_to_radians(float degrees) {
-    return degrees * (M_PI / 180.0);
-}
-
 struct Matrix make_matrix(uint8_t rows, uint8_t cols) {
     float* buff = (float*)malloc(rows*cols*sizeof(float));
     for(uint8_t i=0; i < rows; i++) {
@@ -151,14 +147,11 @@ struct Matrix rotate_degrees_xy(float angle) {
 }
 
 struct Matrix shear_xy(float sx, float sy) {
-    struct Matrix m = make_matrix(3, 3);
+    struct Matrix m = make_idenity_matrix(3);
     float rad_x = degrees_to_radians(sx);
     float rad_y = degrees_to_radians(sy);
-    matrix_set(&m, 0, 0, 1.0);
     matrix_set(&m, 0, 1, (float)tan(degrees_to_radians(sx)));
     matrix_set(&m, 1, 0, (float)tan(degrees_to_radians(sy)));
-    matrix_set(&m, 1, 1, 1.0);
-    matrix_set(&m, 2, 2, 1.0);
     return m;
 }
 
