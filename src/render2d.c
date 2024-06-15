@@ -41,16 +41,17 @@ static void loadview(struct Render2d* render, struct PointI16 window[2], struct 
         render->painter.viewport[0] = viewport[0];
         render->painter.viewport[1] = viewport[1];
     }
-     uint16_t vleft = render->painter.viewport[0].x;
-        uint16_t vbottom = render->painter.viewport[0].y;
-        uint16_t vright = render->painter.viewport[1].x;
-        uint16_t vtop = render->painter.viewport[1].y;
+    uint16_t vleft = render->painter.viewport[0].x;
+    uint16_t vbottom = render->painter.viewport[0].y;
+    uint16_t vright = render->painter.viewport[1].x;
+    uint16_t vtop = render->painter.viewport[1].y;
 
-        free_matrix(&render->transform);
-        render->transform = matrix_window(
-            (struct PointF32[]){{window[0].x, window[0].y}, {window[1].x, window[1].y}}, 
-            (struct PointF32[]){{vleft - 0.5, vbottom - 0.5}, {vright - 0.5, vtop - 0.5}}
-        );
+    free_matrix(&render->transform);
+
+    render->transform = matrix_window(
+        (struct PointF32[]){{window[0].x, window[0].y}, {window[1].x, window[1].y}}, 
+        (struct PointF32[]){{vleft - 0.5, vbottom - 0.5}, {vright + 0.5, vtop + 0.5}}
+    );
 }
 
 static void push_matrix(struct Render2d* render, struct Matrix* m) {

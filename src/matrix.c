@@ -10,6 +10,11 @@ static inline float degrees_to_radians(float degrees) {
 
 struct Matrix make_matrix(uint8_t rows, uint8_t cols) {
     float* buff = (float*)malloc(rows*cols*sizeof(float));
+    for(uint8_t i=0; i < rows; i++) {
+        for(uint8_t j=0; j < cols; j++) {
+            buff[i+j] = 0.0;
+        }
+    }
     return (struct Matrix) { .rows = rows, .cols = cols, .vals = buff };
 }
 
@@ -50,6 +55,18 @@ void free_matrix(struct Matrix* m) {
     m->cols = 0;
     m->rows = 0;
     free(m->vals);
+}
+
+void print_matrix(struct Matrix* m) {
+    printf("[");
+    for(int i=0; i < m->rows; i++) {
+        printf("\n");
+        for(int j=0; j < m->cols; j++) {
+            printf("%.5f ", matrix_get(m, i, j));
+        }
+    }
+    printf("\n");
+    printf("]\n");
 }
 
 float matrix_dot(struct Matrix* m1, struct Matrix* m2) {
@@ -93,6 +110,9 @@ struct Matrix matrix_apply(struct Matrix* m1, float* seq, uint16_t n_seq, float*
     }
     struct Matrix tmp1 = make_matrix(1, m1->rows);
     struct Matrix tmp2 = matrix_transpose(&tmp1);
+    for(uint16_t i = 0; i < n_seq; i++) {
+        matrix_set(&tmp2, i, 0, seq[i]);
+    }
     struct Matrix tmp3 = matrix_mul(m1, &tmp2);
 
     for(uint8_t i=0; i < tmp3.rows; i++) {
@@ -155,13 +175,6 @@ struct Matrix reflect_y() {
 }
 
 struct Matrix matrix_window(struct PointF32 b1[2], struct PointF32 b2[2]) {
-    /*
-    scale_x = abs(box1[2] - box1[0]) / abs(box0[2] - box0[0])
-    scale_y = abs(box1[3] - box1[1]) / abs(box0[3] - box0[1])
-    return 
-        x = mat.mul(translate(box1[0], box1[1]), scale(scale_x, scale_y)),
-        return mat.mul(x, translate(-box0[0], -box0[1]))
-    */
     float scale_x = fabsf(b2[1].x - b2[0].x) / fabsf(b1[1].x - b1[0].x);
     float scale_y = fabsf(b2[1].y - b2[0].y) / fabsf(b1[1].y - b1[0].y);
 
@@ -170,7 +183,8 @@ struct Matrix matrix_window(struct PointF32 b1[2], struct PointF32 b2[2]) {
 
     struct Matrix tmp2 = matrix_mul(&tmp0, &tmp1);
 
-    struct Matrix tmp3 = translate_xy(-b1[0].x, -b2[0].y);
+    struct Matrix tmp3 = translate_xy(-b1[0].x, -b1[0].y);
+
     struct Matrix res  = matrix_mul(&tmp2, &tmp3);
 
     free_matrix(&tmp0);

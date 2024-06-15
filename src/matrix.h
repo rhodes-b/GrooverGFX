@@ -14,6 +14,8 @@ struct Matrix make_matrix(uint8_t rows, uint8_t cols);
 
 void free_matrix(struct Matrix* m);
 
+void print_matrix(struct Matrix* m);
+
 // // m[r][c] = val
 // inline void matrix_set(struct Matrix* m, uint8_t r, uint8_t c, float val);
 
