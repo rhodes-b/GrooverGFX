@@ -144,14 +144,12 @@ void ren2d_circle(struct Render2d* render, struct PointF32 center, float radius,
    circle_points(center, radius, segments, &pts[0]);
    trans_pts(render, &pts[0], segments, &t_pts[0]);
    render->painter.draw_polygon(&render->painter, t_pts, segments);
-
 }
 
 void ren2d_filled_triangle(struct Render2d* render, struct PointF32 p1, struct PointF32 p2, struct PointF32 p3) {
     struct PointF32 t_pts[3];
     trans_pts(render, (struct PointF32[]){p1, p2, p3}, 3, &t_pts[0]);
     render->painter.draw_filled_triangle(&render->painter, t_pts[0], t_pts[1], t_pts[2]);
-
 }
 
 void ren2d_filled_polygon(struct Render2d* render, struct PointF32* vertices, uint16_t n_vertices) {

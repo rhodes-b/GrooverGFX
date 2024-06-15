@@ -116,16 +116,15 @@ void render_test() {
     r.line(&r, (struct PointF32){0, 2}, (struct PointF32){3, 2});
     r.filled_polygon(&r, (struct PointF32[]){{1, 1}, {1, 2}, {2, 2}, {2, 1}}, 4);
     r.set_color(&r, (struct Pixel){255, 0, 0});
-    // TODO: circle did not work
     r.filled_circle(&r, (struct PointF32){1.5, 1.5}, 0.5, 50);
     r.image.save(&r.image, "ppm/window_test.ppm");
 }
 
 int main() {
 
-    // image_test();
-    // painter_test();
-    // draw_dino();
+    image_test();
+    painter_test();
+    draw_dino();
     render_test();
 
     return 0;

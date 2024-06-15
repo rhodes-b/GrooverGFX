@@ -85,17 +85,18 @@ static void draw_poly(struct Painter* painter, struct PointF32* vertices, uint16
 }
 
 void circle_points(struct PointF32 center, float radius, uint16_t segments, struct PointF32* pts) {
-   float dtheta = M_TAU / segments;
-   float theta = 0.0;
-
+    float dtheta = M_TAU / segments;
+    float theta = 0.0;
+    
     for(uint16_t i=0; i < segments; i++) {
         float x =  center.x + radius * cos(theta);
         float y =  center.y + radius * sin(theta);
-        pts[i] = (struct PointF32){ .x = x, .y = x };
+        pts[i] = (struct PointF32){ .x = x, .y = y };
+        theta += dtheta;
     }
 }
 
-static void draw_circ(struct Painter* painter, struct PointF32 center, uint16_t radius, uint16_t segments) {
+static void draw_circ(struct Painter* painter, struct PointF32 center, float radius, uint16_t segments) {
     struct PointF32 pts[segments];
     circle_points(center, radius, segments, &pts[0]);
     painter->draw_polygon(painter, pts, segments);
