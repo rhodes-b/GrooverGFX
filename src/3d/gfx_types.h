@@ -28,7 +28,7 @@ struct Point3F32 {
     float z;
 };
 
-// TODO: use this might be very verbose
+
 struct Pixel {
     uint8_t r;
     uint8_t g;

@@ -25,26 +25,25 @@ struct Vec3 {
 struct Vec2 make_vec2(float v1, float v2);
 struct Vec3 make_vec3(float v1, float v2, float v3);
 
-struct Vec2 vec2_mul(float s);
-struct Vec3 vec3_mul(float s);
+struct Vec2 vec2_mul(struct Vec2* v, float s);
+struct Vec3 vec3_mul(struct Vec3* v, float s);
 
-struct Point3F32 vec2_add_pt(struct Vec2* v, struct Point3F32 p);
-struct Point3F32 vec3_add_pt(struct Vec3* v, struct Point3F32 p);
+struct Point2F32 vec2_add_pt(struct Vec2* v, struct Point2F32* p);
+struct Point3F32 vec3_add_pt(struct Vec3* v, struct Point3F32* p);
 
-struct Point3F32 vec2_add(struct Vec2* v1, struct Vec2* v2);
-struct Point3F32 vec3_add(struct Vec3* v1, struct Vec3* v2);
+struct Vec2 vec2_add(struct Vec2* v1, struct Vec2* v2);
+struct Vec3 vec3_add(struct Vec3* v1, struct Vec3* v2);
 
 struct Vec2 vec2_neg(struct Vec2* v);
 struct Vec3 vec3_neg(struct Vec3* v);
 
-struct Point3F32 vec2_sub(struct Vec2* v1, struct Vec2* v2);
-struct Point3F32 vec3_sub(struct Vec3* v1, struct Vec3* v2);
+struct Vec2 vec2_sub(struct Vec2* v1, struct Vec2* v2);
+struct Vec3 vec3_sub(struct Vec3* v1, struct Vec3* v2);
 
 float vec2_dot(struct Vec2* v1, struct Vec2* v2);
 float vec3_dot(struct Vec3* v1, struct Vec3* v2);
 
-float vec2_cross(struct Vec2* v1, struct Vec2* v2);
-float vec3_cross(struct Vec3* v1, struct Vec3* v2);
+struct Vec3 vec3_cross(struct Vec3* v1, struct Vec3* v2);
 
 float vec2_mag_sq(struct Vec2* v);
 float vec3_mag_sq(struct Vec3* v);
