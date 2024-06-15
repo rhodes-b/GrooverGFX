@@ -17,7 +17,6 @@
 
 #define M_TAU (M_PI * 2)
 
-
 static struct PointI16 pix_loc(struct PointF32 pt) {
     return (struct PointI16) {
         .x = (uint16_t)roundf(pt.x),
@@ -27,15 +26,14 @@ static struct PointI16 pix_loc(struct PointF32 pt) {
 
 static void draw_pt(struct Painter* painter, struct PointF32 pt) {
     struct PointI16 rounded_pt = pix_loc(pt);
-    if((rounded_pt.x > 0) && 
-       (rounded_pt.x < painter->image.width-1) &&
-       (rounded_pt.y > 0) &&
-       (rounded_pt.y < painter->image.height-1)
+    if((rounded_pt.x >= painter->viewport[0].x) && 
+       (rounded_pt.x <= painter->viewport[1].x) &&
+       (rounded_pt.y >= painter->viewport[0].y) &&
+       (rounded_pt.y <= painter->viewport[1].y)
       ) {
         painter->image.set_pixel(&painter->image, rounded_pt, painter->color);
        }
 }
-
 
 static void draw_ln(struct Painter* painter, struct PointF32 p1, struct PointF32 p2) {
     struct PointI16 a = pix_loc(p1); 
@@ -75,26 +73,25 @@ static void draw_ln(struct Painter* painter, struct PointF32 p1, struct PointF32
     }
 }
 
-
 static void draw_lns(struct Painter* painter, struct PointF32* pts, uint16_t n_pts) {
     for(uint16_t i=0; i < n_pts-1; i++) {
         painter->draw_line(painter, pts[i], pts[i+1]);
     }
 } 
 
-
 static void draw_poly(struct Painter* painter, struct PointF32* vertices, uint16_t n_vertices) {
     painter->draw_lines(painter, vertices, n_vertices);
     painter->draw_line(painter, vertices[0], vertices[n_vertices-1]);
 }
 
+void circle_points(struct PointF32 center, float radius, uint16_t segments, struct PointF32* pts) {
+   float dtheta = M_TAU / segments;
+   float theta = 0.0;
 
-static void circle_points(struct PointF32 center, uint16_t radius, uint16_t segments, struct PointF32* pts) {
-    struct PointI16 center_pt = pix_loc(center);
     for(uint16_t i=0; i < segments; i++) {
-        float d_x = radius * cos(i * (M_TAU / segments));
-        float d_y = radius * sin(i * (M_TAU / segments));
-        pts[i] = (struct PointF32){ .x = center_pt.x + d_x, .y = center_pt.y + d_y };
+        float x =  center.x + radius * cos(theta);
+        float y =  center.y + radius * sin(theta);
+        pts[i] = (struct PointF32){ .x = x, .y = x };
     }
 }
 
@@ -104,8 +101,6 @@ static void draw_circ(struct Painter* painter, struct PointF32 center, uint16_t 
     painter->draw_polygon(painter, pts, segments);
 }
 
-
-// test if p3 is on the line of p1 and p2
 static inline int line_fn(struct PointI16 p1, struct PointI16 p2, struct PointI16 p3) {
     return (p1.y - p2.y) * p3.x + (p2.x - p1.x) * p3.y + p1.x * p2.y - p2.x * p1.y;
 }
@@ -139,13 +134,10 @@ static void barycentric_draw(struct Painter* painter, struct PointF32 p1, struct
     }
 }
 
-
 static void draw_filled_tri(struct Painter* painter, struct PointF32 p1, struct PointF32 p2, struct PointF32 p3) {
-    // TODO: see if we need this
     painter->draw_polygon(painter, (struct PointF32[]){p1, p2, p3}, 3);
     barycentric_draw(painter, p1, p2, p3);
 }
-
 
 static void draw_filled_poly(struct Painter* painter, struct PointF32* vertices, uint16_t n_vertices) {
     struct PointI16 pts[n_vertices];
@@ -166,8 +158,7 @@ static void draw_filled_poly(struct Painter* painter, struct PointF32* vertices,
 
 }
 
-
-static void draw_filled_circ(struct Painter* painter, struct PointF32 center, uint16_t radius, uint16_t segments) {
+static void draw_filled_circ(struct Painter* painter, struct PointF32 center, float radius, uint16_t segments) {
     struct PointF32 pts[segments];
     circle_points(center, radius, segments, pts);
     for(int16_t i=0; i < segments - 1; i++) {
@@ -176,11 +167,11 @@ static void draw_filled_circ(struct Painter* painter, struct PointF32 center, ui
     painter->draw_filled_triangle(painter, center, pts[0], pts[segments-1]);
 }
 
-
 struct Painter make_painter(struct Image* img) {
     return (struct Painter) {
         .color = (struct Pixel){ .r = 0, .g = 0, .b = 0},
         .image = *img,
+        .viewport = {{.x = 0, .y = 0}, {.x = img->width-1, .y = img->height-1}},
         .draw_point = draw_pt,
         .draw_line = draw_ln,
         .draw_lines = draw_lns,

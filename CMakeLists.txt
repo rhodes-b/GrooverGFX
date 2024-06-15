@@ -9,8 +9,7 @@ add_executable(${PROJECT}
 )
 
 target_link_libraries(${PROJECT}
-    groover-image
-    groover-painter
+    groover-render2d
 )
 
 add_subdirectory(src)

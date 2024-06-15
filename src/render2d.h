@@ -3,190 +3,42 @@
 #define _GROOVER_RENDER2D_H
 
 #include "gfx_types.h"
+#include "painter.h"
+#include "matrix.h"
 
-/*
-# render2d.py
-#  Class for 2D rendering with transformations
-# by: Brice Rhodes, JZ <- skeleton code
+struct Render2d;
+struct Render2d {
+    struct Image image;
+    struct Painter painter;
+    struct Matrix transform;
+    struct Matrix* trans_stack[100]; // we shouldn't ever need more than this?
+    uint8_t n_transforms;
+    struct PointI16 window[2];
 
-from math import sin, cos, pi
+    struct Pixel (*get_color)(struct Render2d* render);
+    void (*set_color)(struct Render2d* render, struct Pixel c);
+    void (*get_viewport)(struct Render2d* render, struct PointI16* p1, struct PointI16* p2);
+    void (*loadview)(struct Render2d* render, struct PointI16 window[2], struct PointI16 viewport[2] /* = NULL */);
+    void (*push_matrix)(struct Render2d* render, struct Matrix* m);
+    struct Matrix* (*pop_matrix)(struct Render2d* render);
+    void (*scale)(struct Render2d* render, float sx, float sy);
+    void (*rotate)(struct Render2d* render, float angle);
+    void (*translate)(struct Render2d* render, float dx, float dy);
+    void (*shear)(struct Render2d* render, float sx, float sy);
+    void (*reflect_x)(struct Render2d* render);
+    void (*reflect_y)(struct Render2d* render);
+    void (*point)(struct Render2d* render, struct PointF32 pt);
+    void (*line)(struct Render2d* render, struct PointF32 p1, struct PointF32 p2);
+    void (*lines)(struct Render2d* render, struct PointF32* pts, uint16_t n_pts);
+    void (*polygon)(struct Render2d* render, struct PointF32* vertices, uint16_t n_vertices);
+    void (*circle)(struct Render2d* render, struct PointF32 center, float radius, uint16_t segments);
+    void (*filled_triangle)(struct Render2d* render, struct PointF32 p1, struct PointF32 p2, struct PointF32 p3);
+    void (*filled_polygon)(struct Render2d* render, struct PointF32* vertices, uint16_t n_vertices);
+    void (*filled_circle)(struct Render2d* render, struct PointF32 center, float radius, uint16_t segments);
 
-from image import Image
-from painter import Painter
-import trans2d
-import matrix as mat
+};
 
+struct Render2d make_render2d(uint16_t width, uint16_t height);
 
-def _circle_points(center, radius, npoints):
-    cx, cy = center
-    dtheta = 2 * pi / npoints
-    theta = 0.0
-    points = []
-    for _ in range(npoints):
-        x = cx + radius * cos(theta)
-        y = cy + radius * sin(theta)
-        points.append((x, y))
-        theta += dtheta
-    return points
-
-
-class Render2d:
-
-    """A 2D immediate-mode renderer for 2D scenes supporting
-    transformations and a tranformation stack for "walking" scene
-    descriptions programmatically.
-
-    Immediate-mode means that primitive shapes are drawn as they are
-    created they are not retained as independent objects. What you
-    draw is what you get.
-
-    A Render2d maintains a single current transformation matrix that
-    all drawing primitives are "sent through" to determine their
-    appearance on screen. This transformation can be composed through
-    the loadview, scale, rotate and translate operations. New
-    transformations are added "on the right" so the transformations
-    are applied to a drawing primitive in the reverse order in which
-    they were composed.
-
-    A stack of transformations is maintained so that the current
-    transformation matrix can be saved with push_matrix and a
-    previously stored matrix can be retrieved via pop_matrix.
-
-    """
-
-    def __init__(self, size, background=(255, 255, 255)):
-        self.image = Image(size)
-        self.image.clear(background)
-        self.painter = Painter(self.image)
-        self.trans = mat.unit(3)            # current transformation
-        self.trans_stack = []
-        self.background = background
-        self.color = (0, 0, 0)
-        w, h = size
-        self._window = (0, 0, w-1, h-1)      # since its not pep to declare instance vars outside of init
-        self.loadview((0, 0, w-1, h-1))      # natural coordinates for image
-
-    @property
-    def color(self):
-        return self._color
-
-    @color.setter
-    def color(self, rgb):
-        self._color = rgb
-        self.painter.color = rgb
-
-    @property
-    def viewport(self):
-        return self.painter.viewport
-
-    @property
-    def window(self):
-        return self._window
-
-    def _trans_pt(self, pt):
-        """ return transformed point """
-        x, y, _ = mat.apply(self.trans, pt+(1,))
-        return x, y
-
-    def _trans_pts(self, points):
-        """ return list of transofrmed points """
-        return [self._trans_pt(pt) for pt in points]
-
-    def loadview(self, window, viewport=None):
-        """ set transform to a window-viewport transformation """
-        self._window = window
-        if viewport:
-            self.painter.viewport = viewport
-        vleft, vbottom, vright, vtop = self.painter.viewport
-        self.trans = trans2d.window(window, (vleft-0.5, vbottom-0.5, vright+0.5, vtop+0.5))
-
-    def push_matrix(self):
-        """ push current transformation matrix onto the stack """
-        self.trans_stack.append(self.trans)
-
-    def pop_matrix(self):
-        """ remove top matrix from stack and make it the current tranformation """
-        self.trans = self.trans_stack.pop()
-
-    def scale(self, sx, sy):
-        """ update current transform with a scaling """
-        self.trans = mat.mul(self.trans, trans2d.scale(sx, sy))
-
-    def rotate(self, angle):
-        """ update current transform with a rotation """
-        self.trans = mat.mul(self.trans, trans2d.rotate(angle))
-
-    def translate(self, dx, dy):
-        """ update current transform with a translation """
-        self.trans = mat.mul(self.trans, trans2d.translate(dx, dy))
-
-    def shear(self, sx, sy):
-        self.trans = mat.mul(self.trans, trans2d.shear(sx, sy))
-
-    def reflect_x(self):
-        self.trans = mat.mul(self.trans, trans2d.reflect_x())
-
-    def reflect_y(self):
-        self.trans = mat.mul(self.trans, trans2d.reflect_y())
-
-    def point(self, pt):
-        """ draw point pt """
-        self.painter.draw_point(self._trans_pt(pt))
-
-    def line(self, a, b):
-        """ draw line from point a to point b"""
-        a, b = self._trans_pts([a, b])
-        self.painter.draw_line(a, b)
-
-    def lines(self, points):
-        """ draw polyline connecting points"""
-        for i in range(len(points)-1):
-            self.line(points[i], points[i+1])
-
-    def polygon(self, points):
-        """ draw the polygon having points as vertices"""
-        self.lines(points)
-        self.line(points[0], points[-1])
-
-    def filled_triangle(self, a, b, c):
-        """ draw filled triangle a, b, c """
-        a, b, c = self._trans_pts([a, b, c])
-        self.painter.draw_filled_triangle(a, b, c)
-
-    def filled_polygon(self, points):
-        """ draw filled polygon having points as vertices """
-        points = self._trans_pts(points)
-        self.painter.draw_filled_polygon(points)
-
-    def circle(self, center, radius, segments=50):
-        """ draw circle with given center and radius """
-        points = self._trans_pts(_circle_points(center, radius, segments))
-        self.painter.draw_polygon(points)
-
-    def filled_circle(self, center, radius, segments=50):
-        """draw filled circle with given center and radius
-        note: This will have to use the patinter's
-        draw_filled_polygon, as a transformed circle may no longer be
-        circular.
-        """
-        points = self._trans_pts(_circle_points(center, radius, segments))
-        self.painter.draw_filled_polygon(points)
-
-
-if __name__ == "__main__":
-    r = Render2d((400, 300))
-    r.loadview((0, 0, 3, 3))
-    r.line((1, 0), (1, 3))
-    r.line((2, 0), (2, 3))
-    r.line((0, 1), (3, 1))
-    r.line((0, 2), (3, 2))
-
-    r.filled_polygon([(1, 1), (1, 2), (2, 2), (2, 1)])
-    r.color = (255, 0, 0)
-    r.filled_circle((1.5, 1.5), .5, 50)
-    r.image.show()
-    r.image.save("ppm/window_test.ppm")
-
-*/
 
 #endif /* _GROOVER_RENDER2D_H */

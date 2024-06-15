@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "matrix.h"
+#include <stdio.h>
 
 static inline float degrees_to_radians(float degrees) {
     return degrees * (M_PI / 180.0);
@@ -12,11 +13,37 @@ struct Matrix make_matrix(uint8_t rows, uint8_t cols) {
     return (struct Matrix) { .rows = rows, .cols = cols, .vals = buff };
 }
 
-struct Matrix make_idenity_matrix(uint8_t size) {
-    struct Matrix m = make_matrix(size, size);
-    for(uint8_t i=0; i < size; i++) {
+static inline uint8_t matrix_check_bounds(struct Matrix* m, uint8_t r, uint8_t c) {
+    if((r > m->rows - 1) || (c > m->cols - 1)) {
+        return 1;
+    }
+    return 0;
+}
+
+
+static inline float matrix_get(struct Matrix* m, uint8_t r, uint8_t c) {
+    if(matrix_check_bounds(m, r, c)) {
+        fprintf(stderr, "Matrix row, col not in bounds expected within %d x %d, got %d x %d\n", m->rows, m->cols, r, c);
+        exit(1);
+    }
+    uint16_t loc = (r * m->cols) + c;
+    return m->vals[loc];
+}
+
+static inline void matrix_set(struct Matrix* m, uint8_t r, uint8_t c, float val) {
+    if(matrix_check_bounds(m, r, c)) {
+        return;
+    }
+    uint16_t loc = (r * m->cols) + c;
+    m->vals[loc] = val;
+}
+
+struct Matrix make_idenity_matrix(uint8_t n) {
+    struct Matrix m = make_matrix(n, n);
+    for(uint8_t i=0; i < n; i++) {
         matrix_set(&m, i, i, 1.0);
     }
+    return m;
 }
 
 void free_matrix(struct Matrix* m) {
@@ -25,21 +52,14 @@ void free_matrix(struct Matrix* m) {
     free(m->vals);
 }
 
-inline void matrix_set(struct Matrix* m, uint8_t r, uint8_t c, float val) {
-    // stored row wise so 3x2 = [[0,1], [2,3], [4,5]]
-    uint16_t loc = (r * m->cols) + c;
-    if((loc < 0) || (loc > m->cols*m->rows - 1)) {
-        return;
+float matrix_dot(struct Matrix* m1, struct Matrix* m2) {
+    float dot_prod = 0.0;
+    for (uint8_t i = 0; i < m1->rows; i++) {
+        for (uint8_t j = 0; j < m2->cols; j++) {
+            dot_prod += matrix_get(m1, i, j) * matrix_get(m2, i, j);
+        }
     }
-    m->vals[loc] = val;
-}
-
-inline float matrix_get(struct Matrix* m, uint8_t r, uint8_t c) {
-    uint16_t loc = (r * m->cols) + c;
-    if((loc < 0) || (loc > m->cols*m->rows - 1)) {
-        return 0.0;
-    }
-    return m->vals[loc];
+    return dot_prod;
 }
 
 struct Matrix matrix_mul(struct Matrix* m1, struct Matrix* m2) {
@@ -56,14 +76,32 @@ struct Matrix matrix_mul(struct Matrix* m1, struct Matrix* m2) {
     return m3;
 }
 
-float matrix_dot(struct Matrix* m1, struct Matrix* m2) {
-    float dotProduct = 0.0;
-    for (uint8_t i = 0; i < m1->rows; i++) {
-        for (uint8_t j = 0; j < m2->cols; j++) {
-            dotProduct += matrix_get(&m1, i, j) * matrix_get(&m2, i, j);
+struct Matrix matrix_transpose(struct Matrix* m) {
+    struct Matrix t = make_matrix(m->cols, m->rows);
+    for (int i = 0; i < m->rows; i++) {
+        for (int j = 0; j < m->cols; j++) {
+            matrix_set(&t, j, i, matrix_get(m, i, j));
         }
     }
-    return dotProduct;
+    return t;
+}
+
+struct Matrix matrix_apply(struct Matrix* m1, float* seq, uint16_t n_seq, float* res) {
+    if(m1->rows != n_seq) {
+        fprintf(stderr, "Vector is not same size as matrix rows expected %d got %d\n", m1->rows, n_seq);
+        exit(1);
+    }
+    struct Matrix tmp1 = make_matrix(1, m1->rows);
+    struct Matrix tmp2 = matrix_transpose(&tmp1);
+    struct Matrix tmp3 = matrix_mul(m1, &tmp2);
+
+    for(uint8_t i=0; i < tmp3.rows; i++) {
+        res[i] = matrix_get(&tmp3, i, 0);
+    }
+
+    free_matrix(&tmp1);
+    free_matrix(&tmp2);
+    free_matrix(&tmp3);
 }
 
 struct Matrix scale_xy(float sx, float sy) {
@@ -116,7 +154,7 @@ struct Matrix reflect_y() {
     return m;
 }
 
-struct Matrix window(struct PointF32 b1[2], struct PointF32 b2[2]) {
+struct Matrix matrix_window(struct PointF32 b1[2], struct PointF32 b2[2]) {
     /*
     scale_x = abs(box1[2] - box1[0]) / abs(box0[2] - box0[0])
     scale_y = abs(box1[3] - box1[1]) / abs(box0[3] - box0[1])
@@ -135,10 +173,10 @@ struct Matrix window(struct PointF32 b1[2], struct PointF32 b2[2]) {
     struct Matrix tmp3 = translate_xy(-b1[0].x, -b2[0].y);
     struct Matrix res  = matrix_mul(&tmp2, &tmp3);
 
-    matrix_free(tmp0);
-    matrix_free(tmp1);
-    matrix_free(tmp2);
-    matrix_free(tmp3);
+    free_matrix(&tmp0);
+    free_matrix(&tmp1);
+    free_matrix(&tmp2);
+    free_matrix(&tmp3);
 
     return res;
 }
