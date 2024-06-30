@@ -28,7 +28,7 @@ void painter_test() {
     struct Painter painter = make_painter(&painter_img);
 
     painter.draw_point(&painter, (struct PointF32){ .x = 100, .y = 25 });
-    
+
     painter.color = (struct Pixel){ .r = 255, .g = 0, .b = 0};
     painter.draw_point(&painter, (struct PointF32){ .x = 200.7, .y = 295.3 });
     painter.draw_line(&painter, (struct PointF32){0.5, 0}, (struct PointF32){200, 30.4});
@@ -47,7 +47,7 @@ void painter_test() {
     painter.draw_filled_circle(&painter, (struct PointF32){350.5, 75.2}, 30, 50);
 
     painter.color = (struct Pixel){ .r = 128, .g = 46, .b = 243};
-    
+
     painter.draw_filled_polygon(&painter, (struct PointF32[]){{380, 225.25}, {359, 254}, {326, 243},
                                                               {326, 207}, {359, 196}}, 5);
 
@@ -107,7 +107,7 @@ void draw_dino() {
 }
 
 void render_test() {
-   
+
     struct Render2d r = make_render2d(400, 300);
     r.loadview(&r, (struct PointI16[]){{0, 0}, {3, 3}}, NULL);
     r.line(&r, (struct PointF32){1.0, 0.0}, (struct PointF32){1.0, 3.0});

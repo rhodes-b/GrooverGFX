@@ -11,7 +11,7 @@ void set_cam_perspective(struct Camera* c, float hfov, float aspect, uint16_t di
     c->window[1].y = half_width / aspect;
 }
 
-void set_cam_res(struct Camera* c, float width, float height) {
+void set_cam_res(struct Camera* c, uint16_t width, uint16_t height) {
     c->dx = (c->window[1].x - c->window[0].x) / width;
     c->dy = (c->window[1].y - c->window[0].y) / height;
 }

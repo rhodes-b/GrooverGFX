@@ -3,6 +3,7 @@
 #define _GROOVER_MATRIX_H
 
 #include <gfx_types.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 struct Matrix {
@@ -16,6 +17,13 @@ struct Matrix make_matrix(uint8_t rows, uint8_t cols);
 void free_matrix(struct Matrix* m);
 
 void print_matrix(struct Matrix* m);
+
+static inline uint8_t matrix_check_bounds(struct Matrix* m, uint8_t r, uint8_t c) {
+    if((r > m->rows - 1) || (c > m->cols - 1)) {
+        return 1;
+    }
+    return 0;
+}
 
 static inline float matrix_get(struct Matrix* m, uint8_t r, uint8_t c) {
     if(matrix_check_bounds(m, r, c)) {

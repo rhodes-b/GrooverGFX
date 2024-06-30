@@ -77,8 +77,5 @@ gives the transformation from box1 to box2
 */
 struct Matrix matrix_window(struct PointF32 b1[2], struct PointF32 b2[2]);
 
-static inline float degrees_to_radians(float degrees) {
-    return degrees * (M_PI / 180.0);
-}
 
 #endif /* _GROOVER_MATRIX_H */

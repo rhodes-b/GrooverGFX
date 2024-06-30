@@ -6,7 +6,6 @@
 #include "math3d.h"
 #include "ray3d.h"
 
-struct Camera;
 struct Camera {
     struct Point3F32 eye;
     struct Point2F32 window[2];

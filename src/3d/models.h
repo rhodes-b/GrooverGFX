@@ -2,8 +2,20 @@
 #ifndef _GROOVER_MODELS_H
 #define _GROOVER_MODELS_H
 
+#include <stdbool.h>
 #include "gfx_types.h"
 #include "math3d.h"
+#include "ray3d.h"
+
+struct Record {
+    struct Point3F32* pts;
+    float n_pts;
+    struct Pixel color;
+    struct Ray normal;
+    float time;
+    // ? uvn
+    // ? texture
+};
 
 struct Sphere {
     struct Point3F32 pos;
@@ -11,26 +23,23 @@ struct Sphere {
     struct Pixel color;
     uint8_t nlat;
     uint8_t nlong;
+    struct Point3F32* bands;
     struct Vec3 axis;
     struct Point3F32 northpole;
     struct Point3F32 southpole;
 
-    // TODO: return type or pointer to get vals?
-    void (*iter_polygons)(struct Sphere* s);
-    // TODO: figure out info....
-    bool (*intersect)(struct Sphere* s, struct Ray* r, struct Interval* i, void* info);
+    void (*iter_polygons)(struct Sphere* s, struct Record* polys, uint16_t* n_polys);
+    bool (*intersect)(struct Sphere* s, struct Ray* r, struct Interval* i, struct Record* info);
 };
 
 struct Box {
     struct Point3F32 pos;
     struct Vec3 size;
     struct Pixel color;
-    struct Point3F32 planes[3]; // TODO: is this correct?
-
-    // TODO: return type or pointer to get vals?
-    void (*iter_polygons)(struct Box* b);
-    // TODO: figure out info....
-    bool (*intersect)(struct Box* b, struct Ray* r, struct Interval* i, void* info);
+    struct Point3F32 planes[3]; 
+   
+    void (*iter_polygons)(struct Box* b, struct Record* polys, uint16_t* n_polys);
+    bool (*intersect)(struct Box* b, struct Ray* r, struct Interval* i, struct Record* info);
 };
 
 enum ShapeType {
@@ -39,45 +48,28 @@ enum ShapeType {
 };
 
 struct Shape {
+    enum ShapeType shape_type;
     union ShapeVal {
         struct Box b;
         struct Sphere s;
     } shape;
-    enum ShapeType shape_type;
 };
+
 
 struct Group {
     struct Shape objects[100];
 
-    // TODO: what is a model?
-    void (*add)(struct Group* g, void* model);
-    // TODO: return type or pointer to get vals?
-    void (*iter_polygons)(struct Group* g);
-    // TODO: figure out info....
+    void (*add)(struct Group* g, struct Shape* model);
+    void (*iter_polygons)(struct Group* g, struct Record* polys, uint16_t* n_polys);
     bool (*intersect)(struct Group* g, struct Ray* r, struct Interval* i, void* info);
 };
 
-struct Sphere make_sphere(struct Point3F23 pos, float radius, struct Pixel color, uint8_t nlat, uint8_t nlong);
+struct Sphere make_sphere(struct Point3F32 pos, float radius, struct Pixel color, uint8_t nlat, uint8_t nlong);
+
+void free_sphere(struct Sphere* s);
 
 struct Box make_box(struct Point3F32 pos, struct Vec3 size, struct Pixel color);
 
-/*
-
-// TODO: this might be impossible in c?
-// its just a dictionary that holds anything...
-# ----------------------------------------------------------------------
-class Record:
-
-    def __init__(self, **items):
-        self.__dict__.update(items)
-
-    def update(self, **items):
-        self.__dict__.update(**items)
-
-    def __repr__(self):
-        d = self.__dict__
-        fields = [k+"="+str(d[k]) for k in sorted(d)]
-        return "Record({})".format(", ".join(fields))
-*/
+struct Group make_group();
 
 #endif /* _GROOVER_MODELS_H */

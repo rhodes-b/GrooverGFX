@@ -14,13 +14,6 @@ struct Matrix make_matrix(uint8_t rows, uint8_t cols) {
     return (struct Matrix) { .rows = rows, .cols = cols, .vals = buff };
 }
 
-static inline uint8_t matrix_check_bounds(struct Matrix* m, uint8_t r, uint8_t c) {
-    if((r > m->rows - 1) || (c > m->cols - 1)) {
-        return 1;
-    }
-    return 0;
-}
-
 struct Matrix make_idenity_matrix(uint8_t n) {
     struct Matrix m = make_matrix(n, n);
     for(uint8_t i=0; i < n; i++) {
@@ -149,7 +142,7 @@ struct Matrix reflect_y() {
     return m;
 }
 
-struct Matrix matrix_window(struct PointF32 b1[2], struct PointF32 b2[2]) {
+struct Matrix matrix_window(struct Point2F32 b1[2], struct Point2F32 b2[2]) {
     float scale_x = fabsf(b2[1].x - b2[0].x) / fabsf(b1[1].x - b1[0].x);
     float scale_y = fabsf(b2[1].y - b2[0].y) / fabsf(b1[1].y - b1[0].y);
 
