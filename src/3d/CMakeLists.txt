@@ -8,7 +8,6 @@ add_library(groover-render3d STATIC
     ray3d.c
     render_oo.c
     render_ray.c
-    rgb.c
     scenedef.c
 )
 
