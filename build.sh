@@ -9,14 +9,14 @@ do
         -c|--clean)
             echo "Clean Build"
             clean=1
-            ;;
+        ;;
         -t|--tests)
             echo "Running Tests"
             tests="run_tests"
-            ;;
+        ;;
         *)
             echo "Unknown option: $arg"
-            ;;
+        ;;
     esac
 done
 
