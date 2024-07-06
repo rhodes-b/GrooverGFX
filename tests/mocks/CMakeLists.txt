@@ -1,0 +1,2 @@
+
+message(STATUS "in mocks")

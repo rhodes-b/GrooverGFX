@@ -2,7 +2,7 @@
 #ifndef _GROOVER_MATRIX_H
 #define _GROOVER_MATRIX_H
 
-#include <gfx_types.h>
+#include "gfx_types.h"
 #include <math.h>
 
 struct Matrix {

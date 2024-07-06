@@ -6,7 +6,6 @@
 #include "painter.h"
 #include "matrix.h"
 
-struct Render2d;
 struct Render2d {
     struct Image image;
     struct Painter painter;
