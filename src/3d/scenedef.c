@@ -4,6 +4,13 @@
 static struct Scene scene;
 static struct Camera camera;
 
+struct Scene* get_scene() {
+    return &scene;
+}
+struct Camera* get_camera() {
+    return &camera;
+}
+
 static void scene_add(struct Scene* s, struct Shape* obj) {
     s->objects.add(&s->objects, obj);
 }

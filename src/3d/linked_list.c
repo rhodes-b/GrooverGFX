@@ -1,6 +1,7 @@
 
-#include "linked_list.h"
 #include <stddef.h>
+#include <stdlib.h>
+#include "linked_list.h"
 
 struct Node* make_node() {
     return (struct Node*)malloc(sizeof(struct Node));

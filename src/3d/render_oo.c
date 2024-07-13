@@ -62,7 +62,8 @@ void framebuffer_draw_poly(struct FrameBuffer* fb, struct Point2F32* vertices, u
 
 struct Point2I16 framebuffer_trans_pt(struct FrameBuffer* fb, struct Point2F32 p) {
     float res[3];
-    matrix_apply(&fb->transform, &(float){p.x, p.y, 1.}, 3, &res[0]);
+    float seq[3] = {p.x, p.y, 1.};
+    matrix_apply(&fb->transform, &seq[0], 3, &res[0]);
     return (struct Point2I16){roundf(res[0]), roundf(res[1])};
 }
 
@@ -94,18 +95,23 @@ struct FrameBuffer make_framebuffer(struct Image* img, struct Point2F32 window[2
     return fb;
 }
 
-/*
-def render_wireframe(scene, img):
-    """Render wireframe view of scene into img"""
-    img.clear(scene.background.quantize(255))
-    fb = FrameBuffer(img, scene.camera.window)
-    for rec in scene.objects.iter_polygons():
-        points = [(-scene.camera.distance*(p.x/p.z), -scene.camera.distance*(p.y/p.z)) for p in rec.points]
-        # points = [(p.x, p.y) for p in rec.points]
-        fb.draw_polygon(points, rec.color.quantize(255))
-
-*/
 void render_wireframe(struct Scene* scene, struct Image* img) {
     struct FrameBuffer fb = make_framebuffer(img, scene->camera->window);
-    // TODO: scene.objects.iter_polygons()
+    struct Node* head = scene->objects.iter_polygons(&scene->objects);
+    // head has no data so skip the first one
+    head = head->next;
+    while(head->next != NULL) {
+        struct Record r = head->data;
+
+        struct Point2F32 pts[r.n_pts];
+        for(uint16_t i=0; i < r.n_pts; i++) {
+            pts[i] = (struct Point2F32){
+                .x = -scene->camera->distance*(r.pts[i].x / r.pts[i].z),
+                .y = -scene->camera->distance*(r.pts[i].y / r.pts[i].z),
+            };
+        }
+        fb.draw_polygon(&fb, &pts[0], r.n_pts, r.color);
+
+        head = head->next;
+    }
 }

@@ -8,16 +8,6 @@
 #include "ray3d.h"
 #include "linked_list.h"
 
-struct Record {
-    struct Point3F32* pts;
-    float n_pts;
-    struct Pixel color;
-    struct Ray normal;
-    float time;
-    // ? uvn
-    // ? texture
-};
-
 struct Sphere {
     struct Point3F32 pos;
     float radius;
@@ -39,7 +29,7 @@ struct Box {
     struct Pixel color;
     struct Point3F32 planes[3]; 
    
-    void (*iter_polygons)(struct Box* b, struct Record* polys, uint16_t* n_polys);
+    struct Node* (*iter_polygons)(struct Box* b);
     bool (*intersect)(struct Box* b, struct Ray* r, struct Interval* i, struct Record* info);
 };
 

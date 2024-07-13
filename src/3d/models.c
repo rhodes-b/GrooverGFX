@@ -4,46 +4,6 @@
 #define M_TAU (M_PI * 2)
 
 
-/*
-class Sphere:
-    """ Model of a sphere shape"""
-
-    def intersect(self, ray, interval, info):
-        """ returns a True iff ray intersects the sphere within the
-
-        given time interval. The approriate intersection information
-        is recorded into info, which is a Record containing:
-          point: the point of intersection
-          t: the time of the intersection
-          normal: the surface normal at the point
-          color: the color at the point.
-        """
-        a = ray.dir.mag2()
-        if a == 0:
-            return False
-        rp_vec = ray.start - self.pos
-        b = 2 * ray.dir.dot(rp_vec)
-        c = rp_vec.mag2() - self.radius * self.radius
-        discrim = b*b - 4*a*c
-        if discrim < 0:
-            return False
-        t1 = (-b - sqrt(discrim)) / (2 * a)
-        if t1 in interval:
-            self._setinfo(ray, t1, info)
-            return True
-        t2 = (-b + sqrt(discrim)) / (2 * a)
-        if t2 in interval:
-            self._setinfo(ray, t2, info)
-            return True
-        return False
-
-    def _setinfo(self, ray, t, info):
-        """ helper method to fill in the info record """
-        info.update(t=t, point=ray.point_at(t), color=self.color)
-        info.normal = (info.point - self.pos).normalized()
-*/
-
-
 static void circ2d_points(struct Point2F32 center, float radius, uint16_t segments, struct Point2F32* pts) {
     float dtheta = M_TAU / segments;
     float theta = 0.0;
@@ -80,9 +40,7 @@ static void sphere_make_bands(struct Sphere* s) {
 }
 
 static struct Node* sphere_iter_polys(struct Sphere* s) {
-
-    // TODO: verify this is correct way of looping over these
-
+    // TODO: This is wrong or applying the transforms is wrong
     struct Node* head = make_node();
     struct Node* curr = head;
     for(uint8_t i=0; i < s->nlong; i++) {
@@ -131,25 +89,97 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         r.n_pts = 3;
         r.color = s->color;
 
-        struct Node* n = make_node();
         curr->data = r;
-        curr->next = n;
-        curr = n;
+        // avoid a tail with no data
+        if(i < s->nlong-1) {
+            struct Node* n = make_node();
+            curr->next = n;
+            curr = n;
+        }
     }
     return head;
 }
 
+/*
+ def _setinfo(self, ray, t, info):
+        """ helper method to fill in the info record """
+        info.update(t=t, point=ray.point_at(t), color=self.color)
+        info.normal = (info.point - self.pos).normalized()
+*/
 static void sphere_set_info(struct Sphere* s, struct Ray* r, float t, struct Record* info);
 // TODO: impliment
 
+/*
+def intersect(self, ray, interval, info):
+        """ returns a True iff ray intersects the sphere within the
+
+        given time interval. The approriate intersection information
+        is recorded into info, which is a Record containing:
+          point: the point of intersection
+          t: the time of the intersection
+          normal: the surface normal at the point
+          color: the color at the point.
+        """
+        a = ray.dir.mag2()
+        if a == 0:
+            return False
+        rp_vec = ray.start - self.pos
+        b = 2 * ray.dir.dot(rp_vec)
+        c = rp_vec.mag2() - self.radius * self.radius
+        discrim = b*b - 4*a*c
+        if discrim < 0:
+            return False
+        t1 = (-b - sqrt(discrim)) / (2 * a)
+        if t1 in interval:
+            self._setinfo(ray, t1, info)
+            return True
+        t2 = (-b + sqrt(discrim)) / (2 * a)
+        if t2 in interval:
+            self._setinfo(ray, t2, info)
+            return True
+        return False
+*/
 static bool sphere_intersect(struct Sphere* s, struct Ray* r, struct Interval* i, struct Record* info) {
     return false;
 }
 
 
-void free_record(struct Record* r) {
-    free(r->pts);
+static void group_add(struct Group* g, struct Shape* model) {
+    g->objects[g->n_objects++] = *model;
+    // TODO: does ++ work in this case?
 }
+
+static struct Node* group_iter_polys(struct Group* g) {
+    // Head here has no data but the individual shapes do
+    struct Node* head = make_node();
+    struct Node* curr = head;
+    for(uint8_t i=0; i < g->n_objects; i++) {
+        struct Shape s = g->objects[i];
+        struct Node* iter = NULL;
+        switch (s.shape_type) {
+            case SPHERE:
+                iter = s.shape.s.iter_polygons(&s.shape.s);
+                curr->next = iter;
+                curr = iter;
+                break;
+            case BOX:
+                iter = s.shape.b.iter_polygons(&s.shape.b);
+                curr->next = iter;
+                curr = iter;
+                break;
+            default:
+                // unreachable
+                break;
+        }
+    }
+    return head;
+}
+
+static bool group_intersect(struct Group* g, struct Ray* r, struct Interval* i, void* info) {
+    // TODO: impliment
+    return true;
+}
+
 
 struct Sphere make_sphere(struct Point3F32 pos, float radius, struct Pixel color, uint8_t nlat, uint8_t nlong) {
     struct Sphere s = {0};
@@ -167,14 +197,22 @@ struct Sphere make_sphere(struct Point3F32 pos, float radius, struct Pixel color
     return s;
 }
 
+struct Box make_box(struct Point3F32 pos, struct Vec3 size, struct Pixel color) {
+    exit(1);
+}
+
+struct Group make_group() {
+    return (struct Group) {
+        .add = group_add,
+        .iter_polygons = group_iter_polys,
+        .intersect = group_intersect,
+    };
+}
+
 void free_sphere(struct Sphere* s) {
     free(s->bands);
 }
-/*
-for box
 
-def _make_vertices(self):
-        
-def _in_rect(self, p, axis):
-
-*/
+void free_record(struct Record* r) {
+    free(r->pts);
+}
