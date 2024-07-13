@@ -6,6 +6,7 @@
 #include "gfx_types.h"
 #include "math3d.h"
 #include "ray3d.h"
+#include "linked_list.h"
 
 struct Record {
     struct Point3F32* pts;
@@ -28,7 +29,7 @@ struct Sphere {
     struct Point3F32 northpole;
     struct Point3F32 southpole;
 
-    void (*iter_polygons)(struct Sphere* s, struct Record* polys, uint16_t* n_polys);
+    struct Node* (*iter_polygons)(struct Sphere* s);
     bool (*intersect)(struct Sphere* s, struct Ray* r, struct Interval* i, struct Record* info);
 };
 
@@ -58,11 +59,14 @@ struct Shape {
 
 struct Group {
     struct Shape objects[100];
+    uint8_t n_objects;
 
     void (*add)(struct Group* g, struct Shape* model);
-    void (*iter_polygons)(struct Group* g, struct Record* polys, uint16_t* n_polys);
+    struct Node* (*iter_polygons)(struct Group* g);
     bool (*intersect)(struct Group* g, struct Ray* r, struct Interval* i, void* info);
 };
+
+void free_record(struct Record* r);
 
 struct Sphere make_sphere(struct Point3F32 pos, float radius, struct Pixel color, uint8_t nlat, uint8_t nlong);
 

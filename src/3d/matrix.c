@@ -74,7 +74,7 @@ struct Matrix matrix_transpose(struct Matrix* m) {
     return t;
 }
 
-struct Matrix matrix_apply(struct Matrix* m1, float* seq, uint16_t n_seq, float* res) {
+void matrix_apply(struct Matrix* m1, float* seq, uint16_t n_seq, float* res) {
     if(m1->rows != n_seq) {
         fprintf(stderr, "Vector is not same size as matrix rows expected %d got %d\n", m1->rows, n_seq);
         exit(1);

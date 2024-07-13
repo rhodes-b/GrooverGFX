@@ -73,7 +73,7 @@ struct Matrix matrix_transpose(struct Matrix* m);
  * Apply M1 to sequence M2
  * M1:MxN, sequence is a vector of length M
  */
-struct Matrix matrix_apply(struct Matrix* m1, float* seq, uint16_t n_seq, float* res);
+void matrix_apply(struct Matrix* m1, float* seq, uint16_t n_seq, float* res);
 
 // [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 struct Matrix make_idenity_matrix(uint8_t n);

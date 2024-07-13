@@ -31,6 +31,9 @@ struct Vec3 vec3_mul(struct Vec3* v, float s);
 struct Point2F32 vec2_add_pt(struct Vec2* v, struct Point2F32* p);
 struct Point3F32 vec3_add_pt(struct Vec3* v, struct Point3F32* p);
 
+struct Point2F32 vec2_sub_pt(struct Vec2* v, struct Point2F32* p);
+struct Point3F32 vec3_sub_pt(struct Vec3* v, struct Point3F32* p);
+
 struct Vec2 vec2_add(struct Vec2* v1, struct Vec2* v2);
 struct Vec3 vec3_add(struct Vec3* v1, struct Vec3* v2);
 

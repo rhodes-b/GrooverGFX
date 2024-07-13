@@ -18,6 +18,14 @@ struct Point3F32 vec3_add_pt(struct Vec3* v, struct Point3F32* p) {
     return (struct Point3F32){v->x + p->x, v->y + p->y, v->z + p->z};
 }
 
+struct Point2F32 vec2_sub_pt(struct Vec2* v, struct Point2F32* p) {
+    return (struct Point2F32){v->x - p->x, v->y - p->y};
+}
+
+struct Point3F32 vec3_sub_pt(struct Vec3* v, struct Point3F32* p) {
+    return (struct Point3F32){v->x - p->x, v->y - p->y, v->z - p->z};
+}
+
 struct Vec2 vec2_add(struct Vec2* v1, struct Vec2* v2) {
     return make_vec2(v1->x + v2->x, v1->y + v2->y);
 }
@@ -119,7 +127,14 @@ float vec2_get(struct Vec2* v, uint8_t pos) {
 }
 
 float vec3_get(struct Vec3* v, uint8_t pos) {
-    return pos == 0 ? v->x : pos == 1 ? v->y : v->z;
+    switch (pos) {
+        case 0:
+            return v->x;
+        case 1:
+            return v->y;
+        case 2:
+            return v->z;
+    }
 }
 
 void vec2_set(struct Vec2* v, uint8_t pos, float val) {
