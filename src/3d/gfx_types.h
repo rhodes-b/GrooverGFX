@@ -8,13 +8,11 @@
 struct Point2I16 {
     int16_t x;
     int16_t y;
-    int16_t z;
 };
 
 struct Point2F32 {
     float x;
     float y;
-    float z;
 };
 
 struct Point3I16 {
@@ -28,7 +26,6 @@ struct Point3F32 {
     float y;
     float z;
 };
-
 
 struct Pixel {
     uint8_t r;

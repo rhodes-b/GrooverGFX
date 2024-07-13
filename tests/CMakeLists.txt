@@ -10,7 +10,9 @@ set(RYANMOCK_INCLUDE_DIR
 )
 
 set(TESTS
+    camera
     image
+    ray
 )
 
 add_custom_target(run_tests)
@@ -23,14 +25,14 @@ foreach(test ${TESTS})
     )
 
     target_link_libraries(test_${test} PUBLIC
-        groover-image
+        groover-render3d
         ${RYANMOCK_LIB}
     )
 
     add_dependencies(test_${test} ryanmock)
 
     add_custom_target(run_test_${test}
-        COMMAND test_${test}
+        COMMAND ""
     )
 
     add_custom_command(TARGET run_test_${test}

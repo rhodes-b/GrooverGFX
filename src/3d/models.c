@@ -33,7 +33,7 @@ static void sphere_make_bands(struct Sphere* s, uint8_t nlat, uint8_t nlong) {
         struct Point2F32 pts[nlong];
         circ2d_points((struct Point2F32){cx, cz}, r, nlong, &pts[0]);
         for(uint8_t j=0; j < nlong; j++) {
-            s->bands[i * nlong + j] = (struct Point3F32){pts[j].x, y, pts[j].z};
+            s->bands[i * nlong + j] = (struct Point3F32){pts[j].x, y, pts[j].y};
         }
     }
 }

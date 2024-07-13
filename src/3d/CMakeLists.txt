@@ -14,3 +14,7 @@ add_library(groover-render3d STATIC
 target_include_directories(groover-render3d PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+target_link_libraries(groover-render3d PUBLIC
+    m
+)

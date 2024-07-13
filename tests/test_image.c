@@ -2,49 +2,53 @@
 #include <image.h>
 #include <ryanmock.h>
 
-/*
-
-r"""Simple raster image. Allows pixel-level access and saving
-                and loading as PPM image files.
-
-                Examples:
-                >>> img = Image((320, 240))    # create a 320x240 image
-                >>> img.size
-                (320, 240)
-                >>> img[200,200]  # get color at pixel (200,200)
-                (0, 0, 0)
-                >>> img[200, 100] = (255, 0, 0) # set pixel to bright red
-                >>> img[200, 100]   # get color of the pixel back again
-                (255, 0, 0)
-                >>> img.save("ppm/reddot.ppm")    # save image to a ppm file
-                >>> img = Image((2, 3))
-                >>> img[0,0] = 148, 103, 82
-                >>> img[1,2] = 13, 127, 255
-                >>> img.getdata()  # dump image data in ppm format
-                b'P6\n2 3\n255\n\x00\x00\x00\r\x7f\xff\x00\x00\x00\x00\x00\x00\x94gR\x00\x00\x00'
-                >>> img.load("ppm/wartburg.ppm")  # load a ppm image
-                >>> img.size
-                (640, 470)
-                >>> img[350, 220]
-                (148, 103, 82)
-                >>> img.clear((255,255,255))  # make image all white
-                >>> img.save("ppm/blank.ppm")     # blank.ppm is 640x470 all white
-                """
-
-*/
 
 static void test_dimensions() {
     struct Image img = make_image(640, 480);
-    rmmAssertInt16Equal(img.width, 640);
-    rmmAssertInt16Equal(img.height, 480);
+    rmmAssertUIntEqual(img.width, 640);
+    rmmAssertUIntEqual(img.height, 480);
+    free_image(&img);
 }
+
+static void test_get_pixel() {
+    struct Image img = make_image(320, 240);
+    struct Pixel value = img.get_pixel(&img, (struct Point2I16){200, 200});
+    rmmAssertUIntEqual(value.r, 255);
+    rmmAssertUIntEqual(value.g, 255);
+    rmmAssertUIntEqual(value.b, 255);
+    free_image(&img);
+}
+
+static void test_set_pixel() {
+    struct Image img = make_image(320, 240);
+    img.set_pixel(&img, (struct Point2I16){200, 200}, (struct Pixel){255, 0, 0});
+    struct Pixel value = img.get_pixel(&img, (struct Point2I16){200, 200});
+    rmmAssertUIntEqual(value.r, 255);
+    rmmAssertUIntEqual(value.g, 0);
+    rmmAssertUIntEqual(value.b, 0);
+    free_image(&img);
+}
+
+static void test_load_image() {
+    struct Image img = make_image(0, 0);
+    img.load(&img, "ppm/wartburg.ppm");
+    rmmAssertInt16Equal(img.width, 640);
+    rmmAssertInt16Equal(img.height, 470);
+    struct Pixel value = img.get_pixel(&img, (struct Point2I16){350, 220});
+    rmmAssertUIntEqual(value.r, 221);
+    rmmAssertUIntEqual(value.g, 156);
+    rmmAssertUIntEqual(value.b, 178);
+    free_image(&img);
+}
+
 
 int main(int argc, char* argv[]) {
     struct ryanmock_test tests[] = {
         rmmMakeTest(test_dimensions),
+        rmmMakeTest(test_get_pixel),
+        rmmMakeTest(test_set_pixel),
+        rmmMakeTest(test_load_image),
     };
-
     return rmmRunTestsCmdLine(tests, NULL, argc, argv);
-
 }
 
