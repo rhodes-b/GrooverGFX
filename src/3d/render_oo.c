@@ -73,17 +73,17 @@ struct FrameBuffer make_framebuffer(struct Image* img, struct Point2F32 window[2
 
     struct Matrix m = make_matrix(3, 3);
 
-    uint16_t w = img->width;
-    uint16_t h = img->height;
+    uint16_t w = img->width + 1;
+    uint16_t h = img->height + 1;
     float l, b, r, t;
     l = window[0].x;
     b = window[0].y;
     r = window[1].x;
     t = window[1].y;
-    matrix_set(&m, 0, 0, (w+1)/(r-l));
+    matrix_set(&m, 0, 0, w/(r-l));
     matrix_set(&m, 0, 2, (-.5*r-(w-.5)*l)/(r-l));
     matrix_set(&m, 1, 1, h/(t-b));
-    matrix_set(&m, 1, 2, (-.5*r-(w-.5)*b)/(t-b));
+    matrix_set(&m, 1, 2, (-.5*t-(h-.5)*b)/(t-b));
     matrix_set(&m, 2, 2, 1.);
 
     fb.transform = m;
@@ -102,10 +102,6 @@ void render_wireframe(struct Scene* scene, struct Image* img) {
     head = head->next;
     while(head->next != NULL) {
         struct Record r = head->data;
-
-        for(uint16_t i=0; i < r.n_pts; i++) {
-            printf("Point(x:%f, y:%f, z:%f)\n", r.pts[i].x, r.pts[i].y, r.pts[i].z);
-        }
 
         struct Point2F32 pts[r.n_pts];
         for(uint16_t i=0; i < r.n_pts; i++) {

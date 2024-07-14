@@ -88,12 +88,15 @@ static void save_img(struct Image* img, char *fname) {
     close(fd);
 }
 
+// TODO: compare when py.y == img->height in c vs python
+// I think python is abusing negative indexing which we cant
 static inline uint32_t locate_pos(struct Image* img, struct Point2I16 pt) {
     return ((img->height - 1 - pt.y) * 3 * img->width) + (pt.x * 3);
 }
 
 static void set_pix(struct Image* img, struct Point2I16 pt, struct Pixel pix) {
-    if((pt.x >= 0) && (pt.x <= img->width) && (pt.y >= 0) && (pt.y <= img->height)) {
+    // TODO: why does python version work with pt.y <= img->height (am I missing a -1 somewhere?)
+    if((pt.x >= 0) && (pt.x <= img->width) && (pt.y >= 0) && (pt.y < img->height)) {
         uint32_t arr_pos = locate_pos(img, pt);
         img->pixels[arr_pos+0] = pix.r;
         img->pixels[arr_pos+1] = pix.g;

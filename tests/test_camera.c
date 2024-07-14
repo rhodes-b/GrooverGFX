@@ -21,6 +21,8 @@ static void test_set_horizontal_view() {
 static void test_set_resolution() {
     struct Camera cam = make_camera();
     cam.set_resolution(&cam, 400, 300);
+
+    // FUT
     struct Ray r1 = cam.ij_ray(&cam, -0.5, -0.5);
 
     rmmAssertFloatEqual(r1.start.x, 0.00);
@@ -31,6 +33,7 @@ static void test_set_resolution() {
     rmmAssertFloatEqual(r1.dir.y, -10.00);
     rmmAssertFloatEqual(r1.dir.z, -10.00);
 
+    // FUT
     struct Ray r2 = cam.ij_ray(&cam, 399.5, 299.5);
 
     rmmAssertFloatEqual(r2.start.x, 0.00);
@@ -42,6 +45,7 @@ static void test_set_resolution() {
     rmmAssertFloatBetween(r2.dir.y, 10.00, 10.000003);
     rmmAssertFloatEqual(r2.dir.z, -10.00);
 
+    // FUT
     struct Ray r3 = cam.ij_ray(&cam, 0., 0.);
 
     rmmAssertFloatEqual(r3.start.x, 0.00);
@@ -52,6 +56,7 @@ static void test_set_resolution() {
     rmmAssertFloatEqual(r3.dir.y, -9.9666666666);
     rmmAssertFloatEqual(r3.dir.z, -10.00);
 
+    // FUT
     struct Ray r4 = cam.ij_ray(&cam, 399./2, 299./2);
     rmmAssertFloatEqual(r4.start.x, 0.00);
     rmmAssertFloatEqual(r4.start.y, 0.00);

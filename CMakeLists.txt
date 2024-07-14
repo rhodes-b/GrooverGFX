@@ -7,20 +7,29 @@ set(CMAKE_BUILD_TYPE Debug)
 add_subdirectory(src)
 add_subdirectory(tests)
 
+set(SCENES
+    scene0
+    scene1
+)
+
 add_executable(2d-lib
     main.c
 )
 
-add_executable(scene0
-    scene0.c
-)
+foreach(scene ${SCENES})
+    add_executable(${scene}
+        ${scene}.c
+    )
+
+    target_link_libraries(${scene}
+        groover-render3d
+    )
+
+endforeach()
+
 
 target_link_libraries(2d-lib
     groover-render2d
-)
-
-target_link_libraries(scene0
-    groover-render3d
 )
 
 # Install Testing Framework

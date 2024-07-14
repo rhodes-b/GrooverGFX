@@ -4,14 +4,6 @@
 #define M_TAU (M_PI * 2)
 
 
-/*
-x, y = c
-dtheta = tau / n
-points = [(r * cos(i * dtheta) + x, r * sin(i * dtheta) + y) for i in range(n)]
-points.append(points[0])
-*/
-
-
 static void circ2d_points(struct Point2F32 center, float radius, uint16_t segments, struct Point2F32* pts) {
     float dtheta = M_TAU / segments;
     
@@ -32,7 +24,6 @@ static inline uint16_t get_band(struct Sphere* s, uint16_t index) {
 }
 
 static void sphere_make_bands(struct Sphere* s) {
-    // TODO: I think this is the correct amount?
     s->bands = malloc(s->nlat*(s->nlong+1)*sizeof(struct Point3F32));
 
     float cx = s->pos.x;
@@ -55,7 +46,6 @@ static void sphere_make_bands(struct Sphere* s) {
 }
 
 static struct Node* sphere_iter_polys(struct Sphere* s) {
-    // TODO: This is wrong or applying the transforms is wrong
     struct Node* head = make_node();
     struct Node* curr = head;
     for(uint8_t i=0; i < s->nlong; i++) {
@@ -105,7 +95,9 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         r.color = s->color;
 
         curr->data = r;
-        // avoid a tail with no data
+
+        // avoid a tail with no data?
+        // TODO: confirm this works with / without
         if(i < s->nlong-1) {
             struct Node* n = make_node();
             curr->next = n;
@@ -161,11 +153,10 @@ static bool sphere_intersect(struct Sphere* s, struct Ray* r, struct Interval* i
 
 static void group_add(struct Group* g, struct Shape* model) {
     g->objects[g->n_objects++] = *model;
-    // TODO: does ++ work in this case?
 }
 
 static struct Node* group_iter_polys(struct Group* g) {
-    // Head here has no data but the individual shapes do
+    // No data in head but each shapes head has data
     struct Node* head = make_node();
     struct Node* curr = head;
     for(uint8_t i=0; i < g->n_objects; i++) {
@@ -176,6 +167,10 @@ static struct Node* group_iter_polys(struct Group* g) {
                 iter = s.shape.s.iter_polygons(&s.shape.s);
                 curr->next = iter;
                 curr = iter;
+                // get to end of iter
+                while(curr->next != NULL) {
+                    curr = curr->next;
+                }
                 break;
             case BOX:
                 iter = s.shape.b.iter_polygons(&s.shape.b);
