@@ -26,9 +26,7 @@ static inline uint16_t get_band(struct Sphere* s, uint16_t index) {
 static void sphere_make_bands(struct Sphere* s) {
     s->bands = malloc(s->nlat*(s->nlong+1)*sizeof(struct Point3F32));
 
-    float cx = s->pos.x;
-    float cy = s->pos.y;
-    float cz = s->pos.z;
+    float cx = s->pos.x, cy = s->pos.y, cz = s->pos.z;
 
     float theta = M_PI_2;
     float dtheta = M_PI / (s->nlat+1);
@@ -150,6 +148,70 @@ static bool sphere_intersect(struct Sphere* s, struct Ray* r, struct Interval* i
     return false;
 }
 
+static void make_planes(struct Box* b) {
+    float sx = b->size.x * 0.5, sy = b->size.y * 0.5, sz = b->size.z * 0.5;
+    float cx = b->pos.x, cy = b->pos.y, cz = b->pos.z;
+    b->planes[0] = (struct Point2F32){cx - sx, cx + sx};
+    b->planes[1] = (struct Point2F32){cy - sy, cy + sy};
+    b->planes[2] = (struct Point2F32){cz - sz, cz + sz}; // -z is closer
+}
+
+static struct Node* box_iter_polys(struct Box* b) {
+    struct Node* head = make_node();
+    struct Node* curr = head;
+    struct Point3F32* pts1 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
+    struct Point3F32* pts2 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
+    struct Point3F32* pts3 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
+    struct Point3F32* pts4 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
+
+    struct Point2F32 x_p = b->planes[0], y_p = b->planes[1], z_p = b->planes[2];
+
+    pts1[0] = (struct Point3F32){x_p.x, y_p.x, z_p.y};
+    pts1[1] = (struct Point3F32){x_p.y, y_p.x, z_p.y};
+    pts1[2] = (struct Point3F32){x_p.y, y_p.y, z_p.y};
+    pts1[3] = (struct Point3F32){x_p.x, y_p.y, z_p.y};
+
+    struct Node* next = make_node();
+    curr->data = (struct Record){pts1, 4, b->color};
+    curr->next = next;
+    curr = next;
+
+    pts2[0] = (struct Point3F32){x_p.x, y_p.x, z_p.x};
+    pts2[1] = (struct Point3F32){x_p.y, y_p.x, z_p.x};
+    pts2[2] = (struct Point3F32){x_p.y, y_p.y, z_p.x};
+    pts2[3] = (struct Point3F32){x_p.x, y_p.y, z_p.x};
+
+    next = make_node();
+    curr->data = (struct Record){pts2, 4, b->color};
+    curr->next = next;
+    curr = next;
+
+    pts3[0] = (struct Point3F32){x_p.x, y_p.x, z_p.y};
+    pts3[1] = (struct Point3F32){x_p.x, y_p.x, z_p.x};
+    pts3[2] = (struct Point3F32){x_p.x, y_p.y, z_p.x};
+    pts3[3] = (struct Point3F32){x_p.x, y_p.y, z_p.y};
+
+    next = make_node();
+    curr->data = (struct Record){pts3, 4, b->color};
+    curr->next = next;
+    curr = next;
+
+    pts4[0] = (struct Point3F32){x_p.y, y_p.x, z_p.y};
+    pts4[1] = (struct Point3F32){x_p.y, y_p.x, z_p.x};
+    pts4[2] = (struct Point3F32){x_p.y, y_p.y, z_p.x};
+    pts4[3] = (struct Point3F32){x_p.y, y_p.y, z_p.y};
+
+    next = make_node();
+    curr->data = (struct Record){pts4, 4, b->color};
+    curr->next = next;
+    curr = next;
+
+    return head;
+}
+
+static bool box_intersect(struct Box* b, struct Ray* r, struct Interval* i, struct Record* info) {
+    return false;
+}
 
 static void group_add(struct Group* g, struct Shape* model) {
     g->objects[g->n_objects++] = *model;
@@ -167,10 +229,6 @@ static struct Node* group_iter_polys(struct Group* g) {
                 iter = s.shape.s.iter_polygons(&s.shape.s);
                 curr->next = iter;
                 curr = iter;
-                // get to end of iter
-                while(curr->next != NULL) {
-                    curr = curr->next;
-                }
                 break;
             case BOX:
                 iter = s.shape.b.iter_polygons(&s.shape.b);
@@ -180,6 +238,10 @@ static struct Node* group_iter_polys(struct Group* g) {
             default:
                 // unreachable
                 break;
+        }
+        // get to end of iter
+        while(curr->next != NULL) {
+            curr = curr->next;
         }
     }
     return head;
@@ -208,7 +270,14 @@ struct Sphere make_sphere(struct Point3F32 pos, float radius, struct Pixel color
 }
 
 struct Box make_box(struct Point3F32 pos, struct Vec3 size, struct Pixel color) {
-    exit(1);
+    struct Box b = {0};
+    b.pos = pos;
+    b.size = size;
+    b.color = color;
+    make_planes(&b);
+    b.iter_polygons = box_iter_polys;
+    b.intersect = box_intersect;
+    return b;
 }
 
 struct Group make_group() {

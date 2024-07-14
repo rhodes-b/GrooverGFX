@@ -10,6 +10,8 @@ add_subdirectory(tests)
 set(SCENES
     scene0
     scene1
+    scene2
+    scene3
 )
 
 add_executable(2d-lib

@@ -34,11 +34,11 @@ int main() {
         }
     }
 
-    struct Image img = make_image(640, 480);
+    struct Image img_wf = make_image(640, 480);
 
-    render_wireframe(scene, &img);
+    render_wireframe(scene, &img_wf);
 
-    img.save(&img, "ppm/scene1.ppm");
+    img_wf.save(&img_wf, "ppm/scene1-wf.ppm");
 
     return 0;
 

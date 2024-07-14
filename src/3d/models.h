@@ -27,7 +27,7 @@ struct Box {
     struct Point3F32 pos;
     struct Vec3 size;
     struct Pixel color;
-    struct Point3F32 planes[3]; 
+    struct Point2F32 planes[3];
    
     struct Node* (*iter_polygons)(struct Box* b);
     bool (*intersect)(struct Box* b, struct Ray* r, struct Interval* i, struct Record* info);
