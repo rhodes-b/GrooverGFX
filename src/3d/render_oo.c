@@ -103,6 +103,10 @@ void render_wireframe(struct Scene* scene, struct Image* img) {
     while(head->next != NULL) {
         struct Record r = head->data;
 
+        for(uint16_t i=0; i < r.n_pts; i++) {
+            printf("Point(x:%f, y:%f, z:%f)\n", r.pts[i].x, r.pts[i].y, r.pts[i].z);
+        }
+
         struct Point2F32 pts[r.n_pts];
         for(uint16_t i=0; i < r.n_pts; i++) {
             pts[i] = (struct Point2F32){

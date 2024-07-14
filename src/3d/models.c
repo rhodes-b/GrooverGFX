@@ -4,21 +4,36 @@
 #define M_TAU (M_PI * 2)
 
 
+/*
+x, y = c
+dtheta = tau / n
+points = [(r * cos(i * dtheta) + x, r * sin(i * dtheta) + y) for i in range(n)]
+points.append(points[0])
+*/
+
+
 static void circ2d_points(struct Point2F32 center, float radius, uint16_t segments, struct Point2F32* pts) {
     float dtheta = M_TAU / segments;
-    float theta = 0.0;
     
+    float x = center.x;
+    float y = center.y;
+
     for(uint16_t i=0; i < segments; i++) {
-        float x =  center.x + radius * cos(theta);
-        float y =  center.y + radius * sin(theta);
-        pts[i] = (struct Point2F32){ .x = x, .y = y };
-        theta += dtheta;
+        pts[i] = (struct Point2F32){
+            .x = (radius * cos(i * dtheta) + x),
+            .y = (radius * sin(i * dtheta) + y),
+        };
     }
+    pts[segments] = pts[0];
+}
+
+static inline uint16_t get_band(struct Sphere* s, uint16_t index) {
+    return index * (s->nlong+1);
 }
 
 static void sphere_make_bands(struct Sphere* s) {
     // TODO: I think this is the correct amount?
-    s->bands = malloc(s->nlat*s->nlong*sizeof(struct Point3F32));
+    s->bands = malloc(s->nlat*(s->nlong+1)*sizeof(struct Point3F32));
 
     float cx = s->pos.x;
     float cy = s->pos.y;
@@ -31,10 +46,10 @@ static void sphere_make_bands(struct Sphere* s) {
         float r = s->radius * cosf(theta);
         float y = s->radius * sinf(theta) + cy;
 
-        struct Point2F32 pts[s->nlong];
+        struct Point2F32 pts[s->nlong+1];
         circ2d_points((struct Point2F32){cx, cz}, r, s->nlong, &pts[0]);
-        for(uint8_t j=0; j < s->nlong; j++) {
-            s->bands[i * s->nlong + j] = (struct Point3F32){pts[j].x, y, pts[j].y};
+        for(uint8_t j=0; j < s->nlong+1; j++) {
+            s->bands[get_band(s, i) + j] = (struct Point3F32){pts[j].x, y, pts[j].y};
         }
     }
 }
@@ -59,17 +74,17 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         curr = n;
     }
 
-    for(uint8_t i=0; i < s->nlat-1; i++) {
-        for(uint8_t j=0; j < s->nlong; j++) {
+    for(uint16_t i=0; i < s->nlat-1; i++) {
+        for(uint16_t j=0; j < s->nlong; j++) {
             struct Record r;
             struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
-            pts[0] = s->bands[i * s->nlat + j];
-            pts[1] = s->bands[(i+1) * s->nlat + j];
-            pts[2] = s->bands[(i+1) * s->nlat + (j+1)];
-            pts[3] = s->bands[i * s->nlat + (j+1)];
+            pts[0] = s->bands[get_band(s, i) + j];
+            pts[1] = s->bands[get_band(s, i+1) + j];
+            pts[2] = s->bands[get_band(s, i+1) + (j+1)];
+            pts[3] = s->bands[get_band(s, i) + (j+1)];
+
             r.pts = pts;
             r.n_pts = 4;
-            r.color = s->color;
 
             struct Node* n = make_node();
             curr->data = r;
@@ -83,8 +98,8 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         struct Record r;
         struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 3);
         pts[0] = s->southpole;
-        pts[1] = s->bands[last_band + i];
-        pts[2] = s->bands[last_band + i+1];
+        pts[1] = s->bands[get_band(s, last_band) + i];
+        pts[2] = s->bands[get_band(s, last_band) + i+1];
         r.pts = pts;
         r.n_pts = 3;
         r.color = s->color;

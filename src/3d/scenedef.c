@@ -7,6 +7,7 @@ static struct Camera camera;
 struct Scene* get_scene() {
     return &scene;
 }
+
 struct Camera* get_camera() {
     return &camera;
 }
