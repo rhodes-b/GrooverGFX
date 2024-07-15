@@ -2,7 +2,7 @@
 #include <render_oo.h>
 #include <scenedef.h>
 #include <models.h>
-
+#include <render_ray.h>
 
 // scene.background = (.8, .8, .8)
 // TODO: make scene.background work (I don't have image->clear)
@@ -12,7 +12,7 @@ int main() {
     struct Scene* scene = get_scene();
     cam->set_perspective(cam, 60, 1.3333, 5);
 
-    struct Box b = make_box((struct Point3F32){-3, -2, -10}, (struct Vec3){2, 2, 2}, (struct Pixel){255, 0, 0});
+    struct Box b = make_box((struct Point3F32){-3, -2, -10}, (struct Vec3){2, 2, 2}, make_pixel(1, 0, 0));
 
     scene->add(scene, &(struct Shape){BOX, .shape.b = b});
 

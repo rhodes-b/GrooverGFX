@@ -2,11 +2,11 @@
 #include "gfx_types.h"
 
 static struct Pixel quantize_pixel(struct Pixel* p, uint8_t val) {
-    return (struct Pixel) {
+    return make_pixel(
         roundf(p->r * val),
         roundf(p->g * val),
-        roundf(p->b * val),
-    };
+        roundf(p->b * val)
+    );
 }
 
 struct Pixel make_pixel(float r, float g, float b) {

@@ -4,7 +4,11 @@
 #include <models.h>
 #include <stdlib.h>
 #include <time.h>
+#include <render_ray.h>
 
+float randf() {
+    return (float) rand() / (uint64_t)RAND_MAX + 1;
+}
 
 int main() {
     init_scene();
@@ -13,9 +17,9 @@ int main() {
     struct Scene* scene = get_scene();
     cam->set_perspective(cam, 60, 4./3, 50);
 
-    struct Sphere s1 = make_sphere((struct Point3F32){0., 300., -1200.}, 200, (struct Pixel){255, 0, 0}, 7, 15);
-    struct Sphere s2 = make_sphere((struct Point3F32){-80., 150., -1200.}, 200, (struct Pixel){0, 255, 0}, 7, 15);
-    struct Sphere s3 = make_sphere((struct Point3F32){70., 100., -1200.}, 200, (struct Pixel){0, 0, 255}, 7, 15);
+    struct Sphere s1 = make_sphere((struct Point3F32){0., 300., -1200.}, 200, make_pixel(1, 0, 0), 7, 15);
+    struct Sphere s2 = make_sphere((struct Point3F32){-80., 150., -1200.}, 200, make_pixel(0, 1, 0), 7, 15);
+    struct Sphere s3 = make_sphere((struct Point3F32){70., 100., -1200.}, 200, make_pixel(0, 0, 1), 7, 15);
 
     scene->add(scene, &(struct Shape){SPHERE, .shape.s = s1});
     scene->add(scene, &(struct Shape){SPHERE, .shape.s = s2});
@@ -26,7 +30,7 @@ int main() {
             struct Sphere s = make_sphere(
                 (struct Point3F32){x*200, -300, z * -400},
                 40,
-                (struct Pixel){rand()%255, rand()%255, rand()%255},
+                make_pixel(randf(), randf(), randf()),
                 7,
                 15
             );
