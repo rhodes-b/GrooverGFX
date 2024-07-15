@@ -9,7 +9,7 @@ struct Record {
     struct Point3F32* pts;
     uint16_t n_pts;
     struct Pixel color;
-    struct Ray normal;
+    struct Vec3 normal;
     float time;
     // ? uvn
     // ? texture

@@ -17,10 +17,12 @@ int main() {
     scene->add(scene, &(struct Shape){BOX, .shape.b = b});
 
     struct Image img_wf = make_image(640, 480);
-
     render_wireframe(scene, &img_wf);
-
     img_wf.save(&img_wf, "ppm/scene2-wf.ppm");
+
+    struct Image img_rt = make_image(640, 480);
+    raytrace(scene, &img_rt);
+    img_rt.save(&img_rt, "ppm/scene2-rt.ppm");
 
     return 0;
 }

@@ -1,6 +1,7 @@
 
 add_library(groover-render3d STATIC
     camera.c
+    gfx_types.c
     image.c
     linked_list.c
     math3d.c

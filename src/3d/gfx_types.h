@@ -28,10 +28,13 @@ struct Point3F32 {
 };
 
 struct Pixel {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    float r;
+    float g;
+    float b;
+    struct Pixel (*quantize)(struct Pixel* p, uint8_t val);
 };
+
+struct Pixel make_pixel(float r, float g, float b);
 
 static inline float degrees_to_radians(float degrees) {
     return degrees * (M_PI / 180.0);

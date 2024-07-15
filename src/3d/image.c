@@ -106,11 +106,11 @@ static void set_pix(struct Image* img, struct Point2I16 pt, struct Pixel pix) {
 
 static struct Pixel get_pix(struct Image* img, struct Point2I16 pt) {
     uint16_t arr_pos = locate_pos(img, pt);
-    return (struct Pixel) {
-        .r = img->pixels[arr_pos+0],
-        .g = img->pixels[arr_pos+1],
-        .b = img->pixels[arr_pos+2],
-    };
+    return make_pixel(
+        img->pixels[arr_pos+0],
+        img->pixels[arr_pos+1],
+        img->pixels[arr_pos+2]
+    );
 }
 
 struct Image make_image(uint16_t width, uint16_t height) {

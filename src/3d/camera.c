@@ -24,7 +24,7 @@ struct Ray ij_ray(struct Camera* c, float i, float j) {
         -(float)c->distance,
     };
     struct Vec3 v = point3F32_sub(&pt , &c->eye);
-    return (struct Ray){c->eye, v};
+    return make_ray(c->eye, v);
 }
 
 struct Camera make_camera() {

@@ -110,7 +110,7 @@ void render_wireframe(struct Scene* scene, struct Image* img) {
                 .y = -scene->camera->distance*(r.pts[i].y / r.pts[i].z),
             };
         }
-        fb.draw_polygon(&fb, &pts[0], r.n_pts, r.color);
+        fb.draw_polygon(&fb, &pts[0], r.n_pts,  r.color.quantize(&r.color, 255));
 
         head = head->next;
     }

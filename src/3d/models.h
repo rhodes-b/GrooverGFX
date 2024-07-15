@@ -53,7 +53,7 @@ struct Group {
 
     void (*add)(struct Group* g, struct Shape* model);
     struct Node* (*iter_polygons)(struct Group* g);
-    bool (*intersect)(struct Group* g, struct Ray* r, struct Interval* i, void* info);
+    bool (*intersect)(struct Group* g, struct Ray* r, struct Interval* i, struct Record* info);
 };
 
 void free_record(struct Record* r);

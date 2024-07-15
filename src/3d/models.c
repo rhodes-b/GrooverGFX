@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <math.h>
 #include "models.h"
 #define M_TAU (M_PI * 2)
 
@@ -105,46 +106,46 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
     return head;
 }
 
-/*
- def _setinfo(self, ray, t, info):
-        """ helper method to fill in the info record """
-        info.update(t=t, point=ray.point_at(t), color=self.color)
-        info.normal = (info.point - self.pos).normalized()
-*/
-static void sphere_set_info(struct Sphere* s, struct Ray* r, float t, struct Record* info);
-// TODO: impliment
 
-/*
-def intersect(self, ray, interval, info):
-        """ returns a True iff ray intersects the sphere within the
+static void sphere_set_info(struct Sphere* s, struct Ray* r, float t, struct Record* info) {
+    info->time = t;
+    if(info->pts != NULL) {
+        free(info->pts);
+    }
+    info->pts = (struct Point3F32*)malloc(sizeof(struct Point3F32));
+    struct Point3F32 pt = r->point_at(r, t);
+    info->pts[0].x = pt.x;
+    info->pts[0].y = pt.y;
+    info->pts[0].z = pt.z;
 
-        given time interval. The approriate intersection information
-        is recorded into info, which is a Record containing:
-          point: the point of intersection
-          t: the time of the intersection
-          normal: the surface normal at the point
-          color: the color at the point.
-        """
-        a = ray.dir.mag2()
-        if a == 0:
-            return False
-        rp_vec = ray.start - self.pos
-        b = 2 * ray.dir.dot(rp_vec)
-        c = rp_vec.mag2() - self.radius * self.radius
-        discrim = b*b - 4*a*c
-        if discrim < 0:
-            return False
-        t1 = (-b - sqrt(discrim)) / (2 * a)
-        if t1 in interval:
-            self._setinfo(ray, t1, info)
-            return True
-        t2 = (-b + sqrt(discrim)) / (2 * a)
-        if t2 in interval:
-            self._setinfo(ray, t2, info)
-            return True
-        return False
-*/
+    info->n_pts = 1;
+    info->color = s->color;
+    struct Vec3 tmp = point3F32_sub(&info->pts[0], &s->pos);
+    info->normal = vec3_normalized(&tmp);
+}
+
 static bool sphere_intersect(struct Sphere* s, struct Ray* r, struct Interval* i, struct Record* info) {
+    float a = vec3_mag_sq(&r->dir);
+    if(a == 0) {
+        return false;
+    }
+    struct Vec3 rp_vec = point3F32_sub(&r->start, &s->pos);
+    float b = 2 * vec3_dot(&r->dir, &rp_vec);
+    float c = vec3_mag_sq(&rp_vec) - s->radius * s->radius;
+    float discrim = b*b - 4*a*c;
+    if(discrim < 0) {
+        return false;
+    }
+    float t1 = (-b - sqrt(discrim) / (2 * a));
+    if(i->contains(i, t1)) {
+        sphere_set_info(s, r, t1, info);
+        return true;
+    }
+    float t2 = (-b + sqrt(discrim)) / (2 * a);
+    if(i->contains(i, t2)) {
+        sphere_set_info(s, r, t2, info);
+        return true;
+    }
     return false;
 }
 
@@ -247,9 +248,29 @@ static struct Node* group_iter_polys(struct Group* g) {
     return head;
 }
 
-static bool group_intersect(struct Group* g, struct Ray* r, struct Interval* i, void* info) {
-    // TODO: impliment
-    return true;
+static bool group_intersect(struct Group* g, struct Ray* r, struct Interval* i, struct Record* info) {
+    bool hit = false;
+    for(uint8_t index=0; index < g->n_objects; index++) {
+        struct Shape s = g->objects[index];
+        switch (s.shape_type) {
+            case SPHERE:
+                if(s.shape.s.intersect(&s.shape.s, r, i, info)) {
+                    hit = true;
+                    i->high = info->time;
+                }
+                break;
+            case BOX:
+                if(s.shape.b.intersect(&s.shape.b, r, i, info)) {
+                    hit = true;
+                    i->high = info->time;
+                }
+                break;
+            default:
+                // unreachable
+                break;
+        }
+    }
+    return hit;
 }
 
 

@@ -67,11 +67,11 @@ struct Vec3 vec3_cross(struct Vec3* v1, struct Vec3* v2) {
 }
 
 float vec2_mag_sq(struct Vec2* v) {
-    return v->x * v->x + v->y * v->y;
+    return (v->x * v->x) + (v->y * v->y);
 }
 
 float vec3_mag_sq(struct Vec3* v) {
-    return v->x * v->x + v->y * v->y + v->z * v->z;
+    return (v->x * v->x) + (v->y * v->y) + (v->z * v->z);
 }
 
 float vec2_mag(struct Vec2* v) {

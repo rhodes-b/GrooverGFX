@@ -20,8 +20,9 @@ void init_scene() {
     camera = make_camera();
     scene = (struct Scene){
         .camera = &camera,
-        .background = {0},
+        .background = make_pixel(1, 1, 1),
         .objects = make_group(),
         .add = scene_add,
+        .ambient = 0.2,
     };
 }
