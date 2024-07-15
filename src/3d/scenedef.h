@@ -17,6 +17,8 @@ struct Scene {
 
 void init_scene();
 
+void free_scene();
+
 struct Scene* get_scene();
 struct Camera* get_camera();
 

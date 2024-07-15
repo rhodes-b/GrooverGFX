@@ -114,4 +114,6 @@ void render_wireframe(struct Scene* scene, struct Image* img) {
 
         head = head->next;
     }
+    free_nodes(head);
+    free_matrix(&fb.transform);
 }

@@ -25,6 +25,9 @@ struct Pixel raycolor(struct Scene* scene, struct Ray* r, struct Interval* inter
     else {
         color = scene->background;
     }
+    if(info.pts != NULL) {
+        free(info.pts);
+    }
     return color;
 }
 

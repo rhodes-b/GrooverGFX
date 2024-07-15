@@ -41,10 +41,14 @@ int main() {
     struct Image img_wf = make_image(640, 480);
     render_wireframe(scene, &img_wf);
     img_wf.save(&img_wf, "ppm/scene1-wf.ppm");
+    free_image(&img_wf);
 
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);
     img_rt.save(&img_rt, "ppm/scene1-rt.ppm");
+    free_image(&img_rt);
+
+    free_scene();
 
     return 0;
 

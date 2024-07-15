@@ -25,6 +25,7 @@ static inline uint16_t get_band(struct Sphere* s, uint16_t index) {
 }
 
 static void sphere_make_bands(struct Sphere* s) {
+    // leaked here?
     s->bands = malloc(s->nlat*(s->nlong+1)*sizeof(struct Point3F32));
 
     float cx = s->pos.x, cy = s->pos.y, cz = s->pos.z;
@@ -45,10 +46,12 @@ static void sphere_make_bands(struct Sphere* s) {
 }
 
 static struct Node* sphere_iter_polys(struct Sphere* s) {
+    // indirectly lost below?
     struct Node* head = make_node();
     struct Node* curr = head;
     for(uint8_t i=0; i < s->nlong; i++) {
         struct Record r;
+        // leaked here?
         struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 3);
         pts[0] = s->northpole;
         pts[1] = s->bands[i];
@@ -57,6 +60,7 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         r.n_pts = 3;
         r.color = s->color;
 
+        // leaked here?
         struct Node* n = make_node();
         curr->data = r;
         curr->next = n;
@@ -66,6 +70,7 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
     for(uint16_t i=0; i < s->nlat-1; i++) {
         for(uint16_t j=0; j < s->nlong; j++) {
             struct Record r;
+            // leaked here?
             struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
             pts[0] = s->bands[get_band(s, i) + j];
             pts[1] = s->bands[get_band(s, i+1) + j];
@@ -75,6 +80,7 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
             r.pts = pts;
             r.n_pts = 4;
 
+            // leaked here?
             struct Node* n = make_node();
             curr->data = r;
             curr->next = n;
@@ -85,6 +91,7 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
     uint8_t last_band = s->nlat-1;
     for(uint8_t i=0; i < s->nlong; i++) {
         struct Record r;
+        // Valgrind says memory gets leaked here (alot) why?
         struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 3);
         pts[0] = s->southpole;
         pts[1] = s->bands[get_band(s, last_band) + i];
@@ -94,15 +101,20 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         r.color = s->color;
 
         curr->data = r;
-
-        // avoid a tail with no data?
-        // TODO: confirm this works with / without
-        if(i < s->nlong-1) {
-            struct Node* n = make_node();
-            curr->next = n;
-            curr = n;
-        }
+        // leaked here?
+        struct Node* n = make_node();
+        curr->next = n;
+        curr = n;
     }
+    // make sure we clean the last empty node
+    // is doubly linked worth for just this case?
+    struct Node* tmp = curr;
+    curr = head;
+    while(curr->next != tmp) {
+        curr = curr->next;
+    }
+    free_node(tmp);
+    curr->next = NULL;
     return head;
 }
 
@@ -218,28 +230,37 @@ static void group_add(struct Group* g, struct Shape* model) {
     g->objects[g->n_objects++] = *model;
 }
 
+static struct Node* update_node(struct Shape* s) {
+    switch (s->shape_type) {
+        case SPHERE:
+            return s->shape.s.iter_polygons(&s->shape.s);
+            break;
+        case BOX:
+            return s->shape.b.iter_polygons(&s->shape.b);
+            break;
+        default:
+            // unreachable
+            return NULL;
+            break;
+    }
+}
+
 static struct Node* group_iter_polys(struct Group* g) {
     // No data in head but each shapes head has data
-    struct Node* head = make_node();
+    struct Node* head = NULL;
+    struct Shape s = g->objects[0];
+    head = update_node(&s);
     struct Node* curr = head;
-    for(uint8_t i=0; i < g->n_objects; i++) {
+    // get to end of iter
+    while(curr->next != NULL) {
+        curr = curr->next;
+    }
+
+    for(uint8_t i=1; i < g->n_objects; i++) {
         struct Shape s = g->objects[i];
-        struct Node* iter = NULL;
-        switch (s.shape_type) {
-            case SPHERE:
-                iter = s.shape.s.iter_polygons(&s.shape.s);
-                curr->next = iter;
-                curr = iter;
-                break;
-            case BOX:
-                iter = s.shape.b.iter_polygons(&s.shape.b);
-                curr->next = iter;
-                curr = iter;
-                break;
-            default:
-                // unreachable
-                break;
-        }
+        struct Node* iter = update_node(&s);
+        curr->next = iter;
+        curr = iter;
         // get to end of iter
         while(curr->next != NULL) {
             curr = curr->next;

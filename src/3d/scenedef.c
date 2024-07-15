@@ -26,3 +26,20 @@ void init_scene() {
         .ambient = 0.2,
     };
 }
+
+void free_scene() {
+    for(uint16_t i=0; i < scene.objects.n_objects; i++) {
+        struct Shape s = scene.objects.objects[0];
+        switch(s.shape_type) {
+            case SPHERE:
+                free_sphere(&s.shape.s);
+                break;
+            case BOX:
+                // don't need to free memory here
+                break;
+            default:
+                // unreachable
+                break;
+        }
+    }
+}
