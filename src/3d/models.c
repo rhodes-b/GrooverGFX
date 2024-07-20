@@ -118,7 +118,6 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
     return head;
 }
 
-
 static void sphere_set_info(struct Sphere* s, struct Ray* r, float t, struct Record* info) {
     info->time = t;
     if(info->pts != NULL) {
@@ -148,7 +147,7 @@ static bool sphere_intersect(struct Sphere* s, struct Ray* r, struct Interval* i
     if(discrim < 0) {
         return false;
     }
-    float t1 = (-b - sqrt(discrim) / (2 * a));
+    float t1 = (-b - sqrt(discrim)) / (2 * a);
     if(i->contains(i, t1)) {
         sphere_set_info(s, r, t1, info);
         return true;

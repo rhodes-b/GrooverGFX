@@ -55,7 +55,7 @@ float vec2_dot(struct Vec2* v1, struct Vec2* v2) {
 }
 
 float vec3_dot(struct Vec3* v1, struct Vec3* v2) {
-    return v1->x * v2->x + v1->y + v2->y + v1->z * v2->z;
+    return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
 }
 
 struct Vec3 vec3_cross(struct Vec3* v1, struct Vec3* v2) {

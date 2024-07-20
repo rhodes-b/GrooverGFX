@@ -7,14 +7,13 @@ static struct Point3F32 ray_point_at(struct Ray* r, float t) {
 }
 
 static bool interval_contains(struct Interval* i, float t) {
-    return (i->low < t) && (i->high > t);
+    return (i->low < t) && (t < i->high);
 }
 
 static void interval_set(struct Interval* i, float low, float high) {
     i->low = low;
     i->high = high;
 }
-
 
 struct Ray make_ray(struct Point3F32 start, struct Vec3 dir) {
     return (struct Ray) {

@@ -14,7 +14,6 @@ struct Pixel raycolor(struct Scene* scene, struct Ray* r, struct Interval* inter
         struct Point3F32 tmp = r->point_at(r, info.time);
         struct Vec3 lvec = point3F32_sub(&scene->camera->eye, &tmp);
         lvec = vec3_normalized(&lvec);
-
         float lamfact = MAX(0.0f, vec3_dot(&lvec, &info.normal));
         color = make_pixel(
             info.color.r * lamfact + info.color.r * scene->ambient,
