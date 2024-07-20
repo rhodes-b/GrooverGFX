@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "models.h"
+#include <math3d.h>
 #define M_TAU (M_PI * 2)
 
 
@@ -221,8 +222,59 @@ static struct Node* box_iter_polys(struct Box* b) {
     return head;
 }
 
+static bool in_rect(struct Box* b, struct Point3F32* p, uint8_t axis) {
+    // loop over all planes
+    for(uint8_t a=0; a < 3; a++) {
+        if(a == axis) {
+            continue;
+        }
+        float low = b->planes[a].x, high = b->planes[a].y;
+        float xy = a == 0 ? p->x : p->y;
+        if(!((low <= xy) && (xy <= high))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+    hit = True
+    interval.high = t
+    info.update(t=t, point=ray.point_at(t), color=self.color)
+    info.normal = Vector((0, 0, 0))
+    info.normal[a] = -1.0 if lh == 0 else 1
+*/
+
 static bool box_intersect(struct Box* b, struct Ray* r, struct Interval* i, struct Record* info) {
-    return false;
+    bool hit = false;
+    // loop over all planes
+    for(uint8_t a=0; a < 3; a++) {
+        if(r->dir.get_pos(&r->dir, a) == 0.00) {
+            continue;
+        }
+        // low and high
+        for(uint8_t lh=0; lh < 2; lh++) {
+            float plane_xy = lh == 0 ? b->planes[a].x : b->planes[a].y;
+            float ray_start_xy = lh == 0 ? r->start.x : r->start.y;
+            float ray_dir_xy = lh == 0 ? r->dir.x : r->dir.y;
+            float t = (plane_xy - ray_start_xy) / ray_dir_xy;
+            if(!i->contains(i, t)) {
+                continue;
+            }
+            struct Point3F32 tmp = r->point_at(r, t);
+            if(in_rect(b, &tmp, a)) {
+                hit = true;
+                i->high = t;
+                info->time = t;
+                info->pts = (struct Point3F32*)malloc(sizeof(struct Point3F32));
+                *info->pts = tmp;
+                info->n_pts = 1;
+                info->normal = make_vec3(0, 0, 0);
+                info->normal.set_pos(&info->normal, a, (lh == 0 ? -1. : 1.));
+            }
+        }
+    }
+    return hit;
 }
 
 static void group_add(struct Group* g, struct Shape* model) {
