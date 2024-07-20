@@ -98,8 +98,6 @@ struct FrameBuffer make_framebuffer(struct Image* img, struct Point2F32 window[2
 void render_wireframe(struct Scene* scene, struct Image* img) {
     struct FrameBuffer fb = make_framebuffer(img, scene->camera->window);
     struct Node* head = scene->objects.iter_polygons(&scene->objects);
-    // head has no data so skip the first one
-    head = head->next;
     while(head->next != NULL) {
         struct Record r = head->data;
 

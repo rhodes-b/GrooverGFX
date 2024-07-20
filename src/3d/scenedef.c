@@ -29,7 +29,7 @@ void init_scene() {
 
 void free_scene() {
     for(uint16_t i=0; i < scene.objects.n_objects; i++) {
-        struct Shape s = scene.objects.objects[0];
+        struct Shape s = scene.objects.objects[i];
         switch(s.shape_type) {
             case SPHERE:
                 free_sphere(&s.shape.s);
