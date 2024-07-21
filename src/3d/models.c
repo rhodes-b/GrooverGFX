@@ -229,21 +229,13 @@ static bool in_rect(struct Box* b, struct Point3F32* p, uint8_t axis) {
             continue;
         }
         float low = b->planes[a].x, high = b->planes[a].y;
-        float xy = a == 0 ? p->x : p->y;
-        if(!((low <= xy) && (xy <= high))) {
+        float xyz = a == 0 ? p->x : a == 1 ? p->y : p->z;
+        if(!((low <= xyz) && (xyz <= high))) {
             return false;
         }
     }
     return true;
 }
-
-/*
-    hit = True
-    interval.high = t
-    info.update(t=t, point=ray.point_at(t), color=self.color)
-    info.normal = Vector((0, 0, 0))
-    info.normal[a] = -1.0 if lh == 0 else 1
-*/
 
 static bool box_intersect(struct Box* b, struct Ray* r, struct Interval* i, struct Record* info) {
     bool hit = false;
@@ -255,9 +247,8 @@ static bool box_intersect(struct Box* b, struct Ray* r, struct Interval* i, stru
         // low and high
         for(uint8_t lh=0; lh < 2; lh++) {
             float plane_xy = lh == 0 ? b->planes[a].x : b->planes[a].y;
-            float ray_start_xy = lh == 0 ? r->start.x : r->start.y;
-            float ray_dir_xy = lh == 0 ? r->dir.x : r->dir.y;
-            float t = (plane_xy - ray_start_xy) / ray_dir_xy;
+            float ray_start_xyz = a == 0 ? r->start.x : a == 1 ? r->start.y : r->start.z;
+            float t = (plane_xy - ray_start_xyz) / r->dir.get_pos(&r->dir, a);
             if(!i->contains(i, t)) {
                 continue;
             }
@@ -269,6 +260,7 @@ static bool box_intersect(struct Box* b, struct Ray* r, struct Interval* i, stru
                 info->pts = (struct Point3F32*)malloc(sizeof(struct Point3F32));
                 *info->pts = tmp;
                 info->n_pts = 1;
+                info->color = b->color;
                 info->normal = make_vec3(0, 0, 0);
                 info->normal.set_pos(&info->normal, a, (lh == 0 ? -1. : 1.));
             }
