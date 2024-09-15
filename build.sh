@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 clean=0
 tests=""
@@ -29,6 +29,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [ ! -d "build" ]; then
+    clean=1
+fi
+
 if [ $clean == 1 ]; then
     rm -rf build
     cmake -S ./ -B build
@@ -46,3 +50,4 @@ if [ "${valgrind}" != "" ]; then
 fi
 
 popd
+

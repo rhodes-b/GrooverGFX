@@ -34,6 +34,7 @@ struct Box {
 };
 
 enum ShapeType {
+    NONE,
     SPHERE,
     BOX,
 };

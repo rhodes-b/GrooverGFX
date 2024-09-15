@@ -80,6 +80,7 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
 
             r.pts = pts;
             r.n_pts = 4;
+            r.color = s->color;
 
             // leaked here?
             struct Node* n = make_node();
