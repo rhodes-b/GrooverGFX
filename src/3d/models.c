@@ -215,11 +215,8 @@ static struct Node* box_iter_polys(struct Box* b) {
     pts4[2] = (struct Point3F32){x_p.y, y_p.y, z_p.x};
     pts4[3] = (struct Point3F32){x_p.y, y_p.y, z_p.y};
 
-    next = make_node();
     curr->data = (struct Record){pts4, 4, b->color};
-    curr->next = next;
-    curr = next;
-
+    
     return head;
 }
 

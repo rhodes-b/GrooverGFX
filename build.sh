@@ -37,7 +37,10 @@ if [ $clean == 1 ]; then
     rm -rf build
     cmake -S ./ -B build
 fi
-pushd "build"
+
+if [ $(basename $(pwd)) != "build" ]; then
+    pushd "build"
+fi
 
 if [ "${tests}" != "" ]; then
     make -j$(nproc) "${tests}"
@@ -49,5 +52,7 @@ if [ "${valgrind}" != "" ]; then
     valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(echo $valgrind)
 fi
 
+if [ $(basename $(pwd)) != "build" ]; then
 popd
+fi
 

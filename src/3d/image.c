@@ -18,24 +18,36 @@ static void load_img(struct Image* img, char* fname) {
     }
 
     char buff[32] = {0};
-    read(fd, buff, sizeof(PPM_HEADER)-1);
+    if(read(fd, buff, sizeof(PPM_HEADER)-1) < 0) {
+        fprintf(stderr, "could not read from file %s, err:%s\n", fname, strerror(errno));
+    }
     if(strncmp(PPM_HEADER, buff, sizeof(PPM_HEADER)-1) != 0) {
         fprintf(stderr, "Not PPM P6 format got:%s\n", buff);
     }
 
     // read width
-    read(fd, buff, sizeof("%d"));
+    if(read(fd, buff, sizeof("%d")) < 0) {
+        fprintf(stderr, "could not read from file %s, err:%s\n", fname, strerror(errno));
+    }
     img->width = strtoul(buff, NULL, 0);
     // skip space
-    read(fd, buff, 1); 
+    if(read(fd, buff, 1) < 0) {
+        fprintf(stderr, "could not read from file %s, err:%s\n", fname, strerror(errno));
+    }
     // read height
-    read(fd, buff, sizeof("%d"));
+    if(read(fd, buff, sizeof("%d")) < 0) {
+        fprintf(stderr, "could not read from file %s, err:%s\n", fname, strerror(errno));
+    }
     img->height = strtoul(buff, NULL, 0);
     // skip new line
-    read(fd, buff, 1);
+    if(read(fd, buff, 1) < 0) {
+        fprintf(stderr, "could not read from file %s, err:%s\n", fname, strerror(errno));
+    }
 
     // check max is 255
-    read(fd, buff, sizeof("255\n")-1);
+    if(read(fd, buff, sizeof("255\n")-1) < 0) {
+        fprintf(stderr, "could not read from file %s, err:%s\n", fname, strerror(errno));
+    }
     if(strncmp("255\n", buff, sizeof("255\n")-1) != 0) {
         fprintf(stderr, "Pixel range not 255 got:%s\n", buff);
     }
@@ -69,20 +81,26 @@ static void save_img(struct Image* img, char *fname) {
     char buff[32] = {0};
     // write PPM HEADEr
     snprintf(buff, sizeof(buff), PPM_HEADER);
-    write(fd, buff, strlen(buff));
+    if(write(fd, buff, strlen(buff)) < 0) {
+        fprintf(stderr, "could not write to file %s, err:%s\n", fname, strerror(errno));
+    }
     
     // write width and height
     snprintf(buff, sizeof(buff), "%d %d\n", img->width, img->height);
-    write(fd, buff, strlen(buff));
+    if(write(fd, buff, strlen(buff)) < 0) {
+        fprintf(stderr, "could not write to file %s, err:%s\n", fname, strerror(errno));
+    }
 
     // write pixel value
     snprintf(buff, sizeof(buff), "255\n");
-    write(fd, buff, sizeof("255\n")-1);
+    if(write(fd, buff, sizeof("255\n")-1) < 0) {
+        fprintf(stderr, "could not write to file %s, err:%s\n", fname, strerror(errno));
+    }
 
     // write pixels to file
     size_t written_bytes = write(fd, img->pixels, img->width*img->height*3);
     if(written_bytes == -1) {
-        fprintf(stderr, "Error while writing:%s\n", strerror(errno));
+        fprintf(stderr, "could not write to file %s, err:%s\n", fname, strerror(errno));
     }
 
     close(fd);

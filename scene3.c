@@ -7,7 +7,7 @@
 #include <render_ray.h>
 
 float randf() {
-    return (float) rand() / (uint64_t)RAND_MAX + 1;
+    return (float) rand() / (uint64_t)RAND_MAX;
 }
 
 // scene.background = (.8, .8, .7)
