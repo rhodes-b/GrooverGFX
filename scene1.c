@@ -51,5 +51,4 @@ int main() {
     free_scene();
 
     return 0;
-
 }

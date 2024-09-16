@@ -12,6 +12,7 @@ set(SCENES
     scene1
     scene2
     scene3
+    scene4
 )
 
 add_executable(2d-lib

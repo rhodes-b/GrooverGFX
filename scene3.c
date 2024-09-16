@@ -37,5 +37,7 @@ int main() {
     raytrace(scene, &img_rt);
     img_rt.save(&img_rt, "ppm/scene3-rt.ppm");
 
+    free_scene();
+
     return 0;
 }
