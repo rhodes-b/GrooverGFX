@@ -3,83 +3,121 @@
 #include "matrix.h"
 #include <math.h>
 
+#define MIN3(a, b, c) ({ \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    __typeof__(c) _c = (c); \
+    _a < _b ? (_a < _c ? _a : _c) : (_b < _c ? _b : _c); \
+})
+
+#define MAX2(a, b) ({ \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    _a > _b ? _a : _b; \
+})
+
+#define MAX3(a, b, c) ({ \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    __typeof__(c) _c = (c); \
+    _a > _b ? (_a > _c ? _a : _c) : (_b > _c ? _b : _c); \
+})
+
 struct FrameBuffer {
     struct Image img;
     struct Point2I16 window[2];
 
     float* depth_buff;
-
     struct Matrix transform;
 
-    void (*draw_line)(struct FrameBuffer* fb, struct Point2I16 p1, struct Point2I16 p2, struct Pixel color);
-    void (*draw_polygon)(struct FrameBuffer* fb, struct Point2F32* vertices, uint16_t n_vertices, struct Pixel color);
-    struct Point2I16 (*trans_pt)(struct FrameBuffer* fb, struct Point2F32 p);
+    void (*draw_line)(struct FrameBuffer* fb, struct Point3I16 p1, struct Point3I16 p2, struct Pixel color);
+    void (*draw_polygon)(struct FrameBuffer* fb, struct Point3F32* vertices, uint16_t n_vertices, struct Pixel color);
+    // TODO: color is supposed to be an arr here (or 1 need some stupid n_pts bs)
+    void (*draw_phong_triangle)(struct FrameBuffer* fb, struct Point3F32 vertices[3], float dots[3], struct Pixel color);
+    struct Point3I16 (*trans_pt)(struct FrameBuffer* fb, struct Point3F32 p);
 };
 
-static struct Point2I16 pix_loc(struct Point2F32 pt) {
-    return (struct Point2I16) {
+static struct Point3I16 pix_loc(struct Point3F32 pt) {
+    return (struct Point3I16) {
         .x = (uint16_t)roundf(pt.x),
         .y = (uint16_t)roundf(pt.y),
+        .z = (uint16_t)roundf(pt.z),
     };
 }
 
-static void draw_pt(struct FrameBuffer* buff, struct Point2F32 pt, struct Pixel color) {
-    struct Point2I16 rounded_pt = pix_loc(pt);
-    if((rounded_pt.x >= buff->window[0].x) &&
-       (rounded_pt.x <= buff->window[1].x) &&
-       (rounded_pt.y >= buff->window[0].y) &&
-       (rounded_pt.y <= buff->window[1].y)) {
-        buff->img.set_pixel(&buff->img, rounded_pt, color);
-       }
-}
+// TODO: why did I need this (I took from the painter?)?
+// static void draw_pt(struct FrameBuffer* buff, struct Point2F32 pt, struct Pixel color) {
+//     struct Point3I16 rounded_pt = pix_loc(pt);
+//     if((rounded_pt.x >= buff->window[0].x) &&
+//        (rounded_pt.x <= buff->window[1].x) &&
+//        (rounded_pt.y >= buff->window[0].y) &&
+//        (rounded_pt.y <= buff->window[1].y)) {
+//         buff->img.set_pixel(&buff->img, rounded_pt, color);
+//        }
+// }
 
 // TODO: this math is probably wrong to get the pixel value i forgot how image / painter did it before (plus this isn't a byte arr)
 static inline float get_depth_buff(struct FrameBuffer* fb, struct Point2I16 pt) {
-    return fb->depth_buff[(pt.x * (fb->img.width-1)) + pt.y];
+    return fb->depth_buff[(pt.y * (fb->img.width-1)) + pt.x];
 }
 
 static inline void set_depth_buff(struct FrameBuffer* fb, struct Point2I16 pt, float z) {
-    fb->depth_buff[(pt.x * (fb->img.width-1)) + pt.y] = z;
+    fb->depth_buff[(pt.y * (fb->img.width-1)) + pt.x] = z;
 }
 
 
-void framebuffer_draw_ln(struct FrameBuffer* fb, struct Point2I16 a, struct Point2I16 b, struct Pixel color) {
+static void set_pixel(struct FrameBuffer* fb, struct Point2I16 pt, float z, struct Pixel color) {
+    if((0 <= pt.x && pt.x < fb->img.width) && (0 <= pt.y && pt.y < fb->img.height) && z > get_depth_buff(fb, pt)) {
+        // TODO: we are quantize in here now so get rid of quantize outside of this point
+        fb->img.set_pixel(&fb->img, pt, color.quantize(&color, 255));
+        set_depth_buff(fb, pt, z);
+    }
+}
+
+void framebuffer_draw_ln(struct FrameBuffer* fb, struct Point3I16 a, struct Point3I16 b, struct Pixel color) {
     if((a.x == b.x) && (a.y == b.y)) {
-        fb->img.set_pixel(&fb->img, a, color);
+        set_pixel(fb, (struct Point2I16){a.x, a.y}, a.z, color);
     }
 
     int16_t dx = b.x - a.x;
     int16_t dy = b.y - a.y;
+    int16_t dz = b.z - a.z;
     if(abs(dx) >= abs(dy)) {
         if(a.x > b.x) {
-            struct Point2I16 tmp = a;
+            struct Point3I16 tmp = a;
             a = b;
             b = tmp;
         }
         float y = (float)a.y;
         float y_inc = (float)dy / dx;
+        float z = (float)a.z;
+        float z_inc = (float)dz / dx;
         for(int16_t x = a.x; x < b.x + 1; x++) {
-            fb->img.set_pixel(&fb->img, (struct Point2I16){x, y}, color);
+            set_pixel(fb, (struct Point2I16){x, y}, z, color);
             y += y_inc;
+            z += z_inc;
         }
     }
     else {
         if(a.y > b.y) {
-            struct Point2I16 tmp = a;
+            struct Point3I16 tmp = a;
             a = b;
             b = tmp;
         }
         float x = (float)a.x;
         float x_inc = (float)dx / dy;
+        float z = (float)a.z;
+        float z_inc = (float)dz / dy;
         for(int16_t y = a.y; y < b.y + 1; y++) {
-            fb->img.set_pixel(&fb->img, (struct Point2I16){x, y}, color);
+            set_pixel(fb, (struct Point2I16){x, y}, z, color);
             x += x_inc;
+            z += z_inc;
         }
     }
 }
 
-void framebuffer_draw_poly(struct FrameBuffer* fb, struct Point2F32* vertices, uint16_t n_vertices, struct Pixel color) {
-    struct Point2I16 pixels[n_vertices];
+void framebuffer_draw_poly(struct FrameBuffer* fb, struct Point3F32* vertices, uint16_t n_vertices, struct Pixel color) {
+    struct Point3I16 pixels[n_vertices];
     for(uint16_t i=0; i < n_vertices; i++) {
         pixels[i] = fb->trans_pt(fb, vertices[i]);
     }
@@ -89,18 +127,68 @@ void framebuffer_draw_poly(struct FrameBuffer* fb, struct Point2F32* vertices, u
     fb->draw_line(fb, pixels[n_vertices-1], pixels[0], color);
 }
 
-struct Point2I16 framebuffer_trans_pt(struct FrameBuffer* fb, struct Point2F32 p) {
-    float res[3];
-    float seq[3] = {p.x, p.y, 1.};
-    matrix_apply(&fb->transform, &seq[0], 3, &res[0]);
-    return pix_loc((struct Point2F32){res[0], res[1]});
+int16_t line_func(struct Point3I16 p0, struct Point3I16 p1, int16_t x, int16_t y) {
+    return (p0.y-p1.y)*x + (p1.x-p0.x)*y + p0.x*p1.y-p1.x*p0.y;
+}
+
+// TODO: color is supposed to be 3 pt array of pixels
+void draw_phong_triangle(struct FrameBuffer* fb, struct Point3F32 vertices[3], float dots[3], struct Pixel color) {
+    struct Point3I16 a = fb->trans_pt(fb, vertices[0]);
+    struct Point3I16 b = fb->trans_pt(fb, vertices[1]);
+    struct Point3I16 c = fb->trans_pt(fb, vertices[2]);
+
+    // TODO: thingy about making 3 dim array for pixel right now just force it
+    struct Pixel colors[3] = {color, color, color};
+
+    int16_t fbc = line_func(b, c, a.x, a.y);
+    int16_t fac = line_func(a, c, b.x, b.y);
+    int16_t fab = line_func(a, b, c.x, c.y);
+    // protect against div by 0
+    if(fbc == 0 | fac == 0 | fab == 0) {
+        return;
+    }
+
+    float alphamul = 1. / fbc;
+    float betamul = 1. / fac;
+    float gammamul = 1. / fab;
+
+    for(uint16_t x = MIN3(a.x, b.x, c.x); x < MAX3(a.x, b.x, c.x) + 1; x++) {
+        for(uint16_t y = MIN3(a.y, b.y, c.y); y < MAX3(a.y, b.y, c.y) + 1; y++) {
+            float alpha = line_func(b, c, x, y) * alphamul;
+            if(alpha < 0) continue;
+            float beta = line_func(a, c, x, y) * betamul;
+            if(beta < 0) continue;
+            float gamma = line_func(a, b, x, y) * gammamul;
+            if(gamma < 0) continue;
+
+            // point is inside of the triangle
+            float z = alpha*a.z + beta*b.z + gamma*c.z;
+            float lambfact = max(0.0, alpha*dots[0] + beta*dots[1] + gamma*dots[2]);
+            struct Pixel ca = colors[0].mul(&colors[0], alpha);
+            struct Pixel cb = colors[1].mul(&colors[1], beta);
+            struct Pixel cc = colors[2].mul(&colors[2], gamma);
+            struct Pixel tmp = ca.add(&ca, &cb);
+            struct Pixel color = tmp.add(&tmp, &cc);
+            // TODO
+            // rgb = rgb * lambfact + rgb * ambient
+            set_pixel(fb, (struct Point2I16){x, y}, z, color);
+        }
+    }
+
+}
+
+struct Point3I16 framebuffer_trans_pt(struct FrameBuffer* fb, struct Point3F32 p) {
+    float res[4];
+    float seq[4] = {p.x, p.y, p.z, 1.};
+    matrix_apply(&fb->transform, &seq[0], 4, &res[0]);
+    return pix_loc((struct Point3F32){res[0] + 0.5, res[1] + 0.5, res[2]});
 }
 
 struct FrameBuffer make_framebuffer(struct Image* img, struct Point2F32 window[2]) {
     struct FrameBuffer fb = {0};
     fb.img = *img;
 
-    struct Matrix m = make_matrix(3, 3);
+    struct Matrix m = make_matrix(4, 4);
 
     uint16_t w = img->width + 1;
     uint16_t h = img->height + 1;
@@ -110,10 +198,11 @@ struct FrameBuffer make_framebuffer(struct Image* img, struct Point2F32 window[2
     r = window[1].x;
     t = window[1].y;
     matrix_set(&m, 0, 0, w/(r-l));
-    matrix_set(&m, 0, 2, (-.5*r-(w-.5)*l)/(r-l));
+    matrix_set(&m, 0, 3, (-.5*r-(w-.5)*l)/(r-l));
     matrix_set(&m, 1, 1, h/(t-b));
-    matrix_set(&m, 1, 2, (-.5*t-(h-.5)*b)/(t-b));
+    matrix_set(&m, 1, 3, (-.5*t-(h-.5)*b)/(t-b));
     matrix_set(&m, 2, 2, 1.);
+    matrix_set(&m, 3, 3, 1.);
 
     fb.transform = m;
 
