@@ -24,8 +24,11 @@ foreach(scene ${SCENES})
         ${scene}.c
     )
 
+    target_compile_options(${scene} PRIVATE -fsanitize=address -g)
+
     target_link_libraries(${scene}
         groover-render3d
+        -fsanitize=address
     )
 
 endforeach()

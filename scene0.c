@@ -22,12 +22,19 @@ int main() {
     struct Image img_wf = make_image(640, 480);
     render_wireframe(scene, &img_wf);
     img_wf.save(&img_wf, "ppm/scene0-wf.ppm");
-    free_image(&img_wf);
+    // TODO: it thinks the scene is being free twice
+    // free_image(&img_wf);
 
-    struct Image img_rt = make_image(640, 480);
-    raytrace(scene, &img_rt);
-    img_rt.save(&img_rt, "ppm/scene0-rt.ppm");
-    free_image(&img_rt);
+    // struct Image img_sig = make_image(640, 480);
+    // render_signature(scene, &img_sig);
+    // img_sig.save(&img_sig, "ppm/scene0-sig.ppm");
+    // free_image(&img_sig);
+
+    // struct Image img_rt = make_image(640, 480);
+    // raytrace(scene, &img_rt);
+    // img_rt.save(&img_rt, "ppm/scene0-rt.ppm");
+    // free_image(&img_rt);
+
 
     free_scene();
 

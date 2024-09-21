@@ -5,5 +5,6 @@
       python3
       gdb
       cloc
+      valgrind
     ];
 }
