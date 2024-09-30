@@ -55,11 +55,12 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         // leaked here?
         struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 3);
         pts[0] = s->northpole;
-        pts[1] = s->bands[i];
-        pts[2] = s->bands[i+1];
+        pts[1] = s->bands[get_band(s, 0) + i];
+        pts[2] = s->bands[get_band(s, 0) + i+1];
         r.pts = pts;
         r.n_pts = 3;
         r.color = s->color;
+        // TODO: add normal
 
         // leaked here?
         struct Node* n = make_node();

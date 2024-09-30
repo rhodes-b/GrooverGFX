@@ -31,7 +31,9 @@ struct Pixel {
     float r;
     float g;
     float b;
-    struct Pixel (*quantize)(struct Pixel* p, uint8_t val);
+    struct Pixel (*quantize)(struct Pixel *p, uint8_t val);
+    struct Pixel (*mul)(struct Pixel *p, float val);
+    struct Pixel (*add)(struct Pixel *p, struct Pixel* other);
 };
 
 struct Pixel make_pixel(float r, float g, float b);
