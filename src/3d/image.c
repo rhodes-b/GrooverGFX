@@ -84,7 +84,7 @@ static void save_img(struct Image* img, char *fname) {
     if(write(fd, buff, strlen(buff)) < 0) {
         fprintf(stderr, "could not write to file %s, err:%s\n", fname, strerror(errno));
     }
-    
+
     // write width and height
     snprintf(buff, sizeof(buff), "%d %d\n", img->width, img->height);
     if(write(fd, buff, strlen(buff)) < 0) {

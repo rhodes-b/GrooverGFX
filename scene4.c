@@ -11,26 +11,26 @@ int main() {
     cam->set_perspective(cam, 120, 4./3, 20);
 
     // head
-    struct Sphere s1 = make_sphere((struct Point3F32){0, 15, -30}, 5, make_pixel(0, 1, 1), 7, 15);
-    struct Sphere s2 = make_sphere((struct Point3F32){-2, 15, -26}, 1, make_pixel(0, 0, 0), 7, 15);
-    struct Sphere s3 = make_sphere((struct Point3F32){2, 15, -26}, 1, make_pixel(0, 0, 0), 7, 15);
+    struct Sphere s1 = make_sphere((struct Point3F32){0, 15, -30}, 5, make_pixel(0, 1, 1), 20, 20);
+    struct Sphere s2 = make_sphere((struct Point3F32){-2, 15, -26}, 1, make_pixel(0, 0, 0), 20, 20);
+    struct Sphere s3 = make_sphere((struct Point3F32){2, 15, -26}, 1, make_pixel(0, 0, 0), 20, 20);
 
     // arms
     struct Box b1 = make_box((struct Point3F32){-10, 10, -30}, (struct Vec3){20, 2, 3}, make_pixel(0, 1, 1));
     struct Box b2 = make_box((struct Point3F32){10, 10, -30}, (struct Vec3){20, 2, 3}, make_pixel(0, 1, 1));
-    struct Sphere s4 = make_sphere((struct Point3F32){-20, 10, -30}, 2, make_pixel(0, 1, 1), 7, 15);
-    struct Sphere s5 = make_sphere((struct Point3F32){20, 10, -30}, 2, make_pixel(0, 1, 1), 7, 15);
+    struct Sphere s4 = make_sphere((struct Point3F32){-20, 10, -30}, 2, make_pixel(0, 1, 1), 20, 20);
+    struct Sphere s5 = make_sphere((struct Point3F32){20, 10, -30}, 2, make_pixel(0, 1, 1), 20, 20);
 
     // torso
     struct Box b3 = make_box((struct Point3F32){0, 0, -30}, (struct Vec3){10, 20, 5}, make_pixel(0, 1, 1));
 
     // legs
-    struct Sphere s6 = make_sphere((struct Point3F32){-6, -10, -30}, 2, make_pixel(0, 1, 1), 7, 15);
-    struct Sphere s7 = make_sphere((struct Point3F32){6, -10, -30}, 2, make_pixel(0, 1, 1), 7, 15);
+    struct Sphere s6 = make_sphere((struct Point3F32){-6, -10, -30}, 2, make_pixel(0, 1, 1), 20, 20);
+    struct Sphere s7 = make_sphere((struct Point3F32){6, -10, -30}, 2, make_pixel(0, 1, 1), 20, 20);
     struct Box b4 = make_box((struct Point3F32){-6, -20, -30}, (struct Vec3){2, 20, 3}, make_pixel(0, 1, 1));
     struct Box b5 = make_box((struct Point3F32){6, -20, -30}, (struct Vec3){2, 20, 3}, make_pixel(0, 1, 1));
-    struct Sphere s8 = make_sphere((struct Point3F32){-6, -30, -28}, 2, make_pixel(0, 1, 1), 7, 15);
-    struct Sphere s9 = make_sphere((struct Point3F32){6, -30, -28}, 2, make_pixel(0, 1, 1), 7, 15);
+    struct Sphere s8 = make_sphere((struct Point3F32){-6, -30, -28}, 2, make_pixel(0, 1, 1), 20, 20);
+    struct Sphere s9 = make_sphere((struct Point3F32){6, -30, -28}, 2, make_pixel(0, 1, 1), 20, 20);
 
 
     scene->add(scene, &(struct Shape){SPHERE, .shape.s = s1});
@@ -54,6 +54,11 @@ int main() {
     struct Image img_wf = make_image(640, 480);
     render_wireframe(scene, &img_wf);
     img_wf.save(&img_wf, "ppm/scene4-wf.ppm");
+
+    struct Image img_sig = make_image(640, 480);
+    render_signature(scene, &img_sig);
+    img_sig.save(&img_sig, "ppm/scene4-sig.ppm");
+    free_image(&img_sig);
 
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);

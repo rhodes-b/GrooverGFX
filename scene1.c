@@ -15,11 +15,12 @@ int main() {
     srand(time(0));
     struct Camera* cam = get_camera();
     struct Scene* scene = get_scene();
+    scene->light = (struct Point3F32){0, 550, -1200};
     cam->set_perspective(cam, 60, 4./3, 50);
 
-    struct Sphere s1 = make_sphere((struct Point3F32){0., 300., -1200.}, 200, make_pixel(1, 0, 0), 7, 15);
-    struct Sphere s2 = make_sphere((struct Point3F32){-80., 150., -1200.}, 200, make_pixel(0, 1, 0), 7, 15);
-    struct Sphere s3 = make_sphere((struct Point3F32){70., 100., -1200.}, 200, make_pixel(0, 0, 1), 7, 15);
+    struct Sphere s1 = make_sphere((struct Point3F32){0., 300., -1200.}, 200, make_pixel(1, 0, 0), 20, 20);
+    struct Sphere s2 = make_sphere((struct Point3F32){-80., 150., -1200.}, 200, make_pixel(0, 1, 0), 20, 20);
+    struct Sphere s3 = make_sphere((struct Point3F32){70., 100., -1200.}, 200, make_pixel(0, 0, 1), 20, 20);
 
     scene->add(scene, &(struct Shape){SPHERE, .shape.s = s1});
     scene->add(scene, &(struct Shape){SPHERE, .shape.s = s2});
@@ -31,17 +32,27 @@ int main() {
                 (struct Point3F32){x*200, -300, z * -400},
                 40,
                 make_pixel(randf(), randf(), randf()),
-                7,
-                15
+                20,
+                20
             );
             scene->add(scene, &(struct Shape){SPHERE, .shape.s = s});
         }
     }
 
-    // struct Image img_wf = make_image(640, 480);
-    // render_wireframe(scene, &img_wf);
-    // img_wf.save(&img_wf, "ppm/scene1-wf.ppm");
-    // free_image(&img_wf);
+    struct Image img_wf = make_image(640, 480);
+    render_wireframe(scene, &img_wf);
+    img_wf.save(&img_wf, "ppm/scene1-wf.ppm");
+    free_image(&img_wf);
+
+    struct Image img_sig = make_image(640, 480);
+    render_signature(scene, &img_sig);
+    img_sig.save(&img_sig, "ppm/scene1-sig.ppm");
+    free_image(&img_sig);
+
+    struct Image img_phong = make_image(640, 480);
+    render_phong(scene, &img_phong);
+    img_phong.save(&img_phong, "ppm/scene1-phong.ppm");
+    free_image(&img_phong);
 
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);

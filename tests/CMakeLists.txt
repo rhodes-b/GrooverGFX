@@ -12,6 +12,7 @@ set(RYANMOCK_INCLUDE_DIR
 set(TESTS
     camera
     image
+    matrix
     ray
 )
 

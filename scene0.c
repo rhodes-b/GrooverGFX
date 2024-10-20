@@ -24,10 +24,16 @@ int main() {
     img_wf.save(&img_wf, "ppm/scene0-wf.ppm");
     free_image(&img_wf);
 
-    struct Image img_sig = make_image(640*4, 480*4);
+    struct Image img_sig = make_image(640, 480);
     render_signature(scene, &img_sig);
     img_sig.save(&img_sig, "ppm/scene0-sig.ppm");
     free_image(&img_sig);
+
+    struct Image img_phong = make_image(640, 480);
+    render_phong(scene, &img_phong);
+    img_phong.save(&img_phong, "ppm/scene0-phong.ppm");
+    free_image(&img_phong);
+
 
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);

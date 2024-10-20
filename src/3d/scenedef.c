@@ -24,6 +24,7 @@ void init_scene() {
         .objects = make_group(),
         .add = scene_add,
         .ambient = 0.2,
+        .light = camera.eye,
     };
 }
 

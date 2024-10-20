@@ -1,6 +1,6 @@
-
 #include "render_oo.h"
 #include "matrix.h"
+#include "image.h"
 #include <math.h>
 
 #define MIN3(a, b, c) ({ \
@@ -33,7 +33,7 @@ struct FrameBuffer {
     void (*draw_line)(struct FrameBuffer* fb, struct Point3F32 p1, struct Point3F32 p2, struct Pixel color);
     void (*draw_polygon)(struct FrameBuffer* fb, struct Point3F32* vertices, uint16_t n_vertices, struct Pixel color);
 
-    void (*draw_phong_triangle)(struct FrameBuffer* fb, struct Point3F32 vertices[3], float dots[3], struct Pixel colors[3]);
+    void (*draw_phong_triangle)(struct FrameBuffer* fb, struct Point3F32 vertices[3], struct Pixel colors[3], float dots[3], float ambient);
     void (*draw_filled_triangle)(struct FrameBuffer* fb, struct Point3F32 vertices[3], struct Pixel colors[3]);
     struct Point3I16 (*trans_pt)(struct FrameBuffer* fb, struct Point3F32 p);
 };
@@ -56,7 +56,7 @@ static struct Point3I16 pix_loc(struct Point3F32 pt) {
 }
 
 struct Point3I16 framebuffer_trans_pt(struct FrameBuffer* fb, struct Point3F32 p) {
-    float res[4];
+    float res[4] = {0};
     float seq[4] = {p.x, p.y, p.z, 1.};
     matrix_apply(&fb->transform, &seq[0], 4, &res[0]);
     return pix_loc((struct Point3F32){res[0] + 0.5, res[1] + 0.5, res[2]});
@@ -129,7 +129,7 @@ int16_t line_func(struct Point3I16 p0, struct Point3I16 p1, int16_t x, int16_t y
     return (p0.y-p1.y)*x + (p1.x-p0.x)*y + p0.x*p1.y-p1.x*p0.y;
 }
 
-void framebuffer_draw_phong_triangle(struct FrameBuffer* fb, struct Point3F32 vertices[3], float dots[3], struct Pixel colors[3]) {
+void framebuffer_draw_phong_triangle(struct FrameBuffer* fb, struct Point3F32 vertices[3], struct Pixel colors[3], float dots[3], float ambient) {
     struct Point3I16 a = fb->trans_pt(fb, vertices[0]);
     struct Point3I16 b = fb->trans_pt(fb, vertices[1]);
     struct Point3I16 c = fb->trans_pt(fb, vertices[2]);
@@ -163,15 +163,14 @@ void framebuffer_draw_phong_triangle(struct FrameBuffer* fb, struct Point3F32 ve
             struct Pixel cc = colors[2].mul(&colors[2], gamma);
             struct Pixel tmp = ca.add(&ca, &cb);
             struct Pixel color = tmp.add(&tmp, &cc);
-            // TODO
-            // rgb = rgb * lambfact + rgb * ambient
-            set_pixel(fb, (struct Point2I16){x, y}, z, color);
+            struct Pixel lambfact_color = color.mul(&color, lambfact);
+            struct Pixel ambient_color = color.mul(&color, ambient);
+            struct Pixel final_color = lambfact_color.add(&lambfact_color, &ambient_color);
+            set_pixel(fb, (struct Point2I16){x, y}, z, final_color);
         }
     }
 }
 
-
-// TODO: verify this is the exact same as phong without the lambfact stuff
 void framebuffer_draw_filled_triangle(struct FrameBuffer *fb, struct Point3F32 vertices[3], struct Pixel colors[3]) {
     struct Point3I16 a = fb->trans_pt(fb, vertices[0]);
     struct Point3I16 b = fb->trans_pt(fb, vertices[1]);
@@ -205,13 +204,10 @@ void framebuffer_draw_filled_triangle(struct FrameBuffer *fb, struct Point3F32 v
             struct Pixel cc = colors[2].mul(&colors[2], gamma);
             struct Pixel tmp = ca.add(&ca, &cb);
             struct Pixel color = tmp.add(&tmp, &cc);
-            // TODO
-            // rgb = rgb * lambfact + rgb * ambient
             set_pixel(fb, (struct Point2I16){x, y}, z, color);
         }
     }
 }
-
 
 struct FrameBuffer make_framebuffer(struct Image* img, struct Point2F32 window[2]) {
     struct FrameBuffer fb = {0};
@@ -281,8 +277,8 @@ void render_signature(struct Scene* scene, struct Image* img) {
         struct Point3F32 pts[r.n_pts];
         for(uint16_t i=0; i < r.n_pts; i++) {
             pts[i] = (struct Point3F32){
-                .x = -d*r.pts[i].x / r.pts[i].z,
-                .y = -d*r.pts[i].y / r.pts[i].z,
+                .x = d*r.pts[i].x / r.pts[i].z,
+                .y = d*r.pts[i].y / r.pts[i].z,
                 .z = r.pts[i].z,
             };
         }
@@ -297,6 +293,40 @@ void render_signature(struct Scene* scene, struct Image* img) {
     free_matrix(&fb.transform);
 }
 
-void render_phong(struct Scene* scene, struct Image* img);
+void render_phong(struct Scene* scene, struct Image* img) {
+    struct FrameBuffer fb = make_framebuffer(img, scene->camera->window);
+    int16_t d = -scene->camera->distance;
+    struct Node* head = scene->objects.iter_polygons(&scene->objects);
+    while(head->next != NULL) {
+        struct Record r = head->data;
+        struct Point3F32 pts[r.n_pts];
+        struct Vec3 lvecs[r.n_pts];
+        float dots[r.n_pts];
+        for(uint16_t i=0; i < r.n_pts; i++) {
+            pts[i] = (struct Point3F32){
+                .x = d*r.pts[i].x / r.pts[i].z,
+                .y = d*r.pts[i].y / r.pts[i].z,
+                .z = r.pts[i].z,
+            };
+            lvecs[i] = point3F32_sub(&scene->light, &pts[i]);
+            vec3_normalize(&lvecs[i]);
+            dots[i] = vec3_dot(&lvecs[i], &r.normal);
+        }
+        struct Pixel colors[3] = {r.color, r.color, r.color};
+        for(uint8_t j=1; j < r.n_pts-1; j++) {
+            fb.draw_phong_triangle(
+                &fb,
+                (struct Point3F32[3]){pts[0], pts[j], pts[j+1]},
+                colors,
+                (float[3]){dots[0], dots[j], dots[j+1]},
+                scene->ambient
+            );
+        }
+
+        head = head->next;
+    }
+    free_nodes(head);
+    free_matrix(&fb.transform);
+}
 
 void render_gourad(struct Scene* scene, struct Image* img);

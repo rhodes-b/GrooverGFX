@@ -20,8 +20,8 @@ int main() {
     cam->set_perspective(cam, 30, 1.3333, 5);
 
     struct Box b1 = make_box((struct Point3F32){-3, -2, -20}, (struct Vec3){2, 2, 2}, make_pixel(.8, 0, 0));
-    struct Sphere s1 = make_sphere((struct Point3F32){2.5, -2, -20}, 1, make_pixel(0, .8, 0), 7, 15);
-    struct Sphere s2 = make_sphere((struct Point3F32){0, 0, -25}, 3, make_pixel(randf(), randf(), randf()), 7, 15);
+    struct Sphere s1 = make_sphere((struct Point3F32){2.5, -2, -20}, 1, make_pixel(0, .8, 0), 20, 20);
+    struct Sphere s2 = make_sphere((struct Point3F32){0, 0, -25}, 3, make_pixel(randf(), randf(), randf()), 20, 20);
     struct Box b2 = make_box((struct Point3F32){0, -3.5, -20}, (struct Vec3){18, .5, 30}, make_pixel(.9, .8, .3));
 
     scene->add(scene, &(struct Shape){BOX, .shape.b = b1});
@@ -32,6 +32,11 @@ int main() {
     struct Image img_wf = make_image(640, 480);
     render_wireframe(scene, &img_wf);
     img_wf.save(&img_wf, "ppm/scene3-wf.ppm");
+
+    struct Image img_sig = make_image(640, 480);
+    render_signature(scene, &img_sig);
+    img_sig.save(&img_sig, "ppm/scene3-sig.ppm");
+    free_image(&img_sig);
 
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);

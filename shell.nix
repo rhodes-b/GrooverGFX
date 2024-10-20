@@ -6,5 +6,6 @@
       gdb
       cloc
       valgrind
+      gf
     ];
 }
