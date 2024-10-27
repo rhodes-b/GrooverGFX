@@ -103,3 +103,4 @@ gives the transformation from box1 to box2
 struct Matrix matrix_window(struct Point2F32 b1[2], struct Point2F32 b2[2]);
 
 #endif /* _GROOVER_MATRIX_H */
+

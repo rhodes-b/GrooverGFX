@@ -68,3 +68,4 @@ struct Box make_box(struct Point3F32 pos, struct Vec3 size, struct Pixel color);
 struct Group make_group();
 
 #endif /* _GROOVER_MODELS_H */
+

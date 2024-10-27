@@ -180,3 +180,4 @@ struct Vec3 make_vec3(float v1, float v2, float v3) {
         .set_pos = vec3_set,
     };
 }
+

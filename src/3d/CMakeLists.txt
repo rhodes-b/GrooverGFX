@@ -20,3 +20,4 @@ target_include_directories(groover-render3d PUBLIC
 target_link_libraries(groover-render3d PUBLIC
     m
 )
+

@@ -28,3 +28,4 @@ void free_node(struct Node* n);
 void free_nodes(struct Node* n);
 
 #endif /* _GROOVER_LINKED_LIST_H */
+

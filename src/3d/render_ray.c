@@ -43,3 +43,4 @@ void raytrace(struct Scene* scene, struct Image* img) {
         }
     }
 }
+

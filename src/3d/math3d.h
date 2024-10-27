@@ -67,3 +67,4 @@ struct Point2F32 point2F32_sub_vec2(struct Point2F32* p, struct Vec2* v);
 struct Point3F32 point3F32_sub_vec2(struct Point3F32* p, struct Vec3* v);
 
 #endif  /* _GROOVER_MATH3D_H */
+

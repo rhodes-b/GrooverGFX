@@ -22,3 +22,4 @@ void free_nodes(struct Node* n) {
     free_nodes(n->next);
     free_node(n);
 }
+

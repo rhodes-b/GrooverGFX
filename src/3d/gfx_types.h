@@ -43,3 +43,4 @@ static inline float degrees_to_radians(float degrees) {
 }
 
 #endif /* _GROOVER_GFX_TYPES_H */
+

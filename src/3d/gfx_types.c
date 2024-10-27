@@ -40,3 +40,4 @@ struct Pixel make_pixel(float r, float g, float b) {
         .add = add_pixel,
     };
 }
+

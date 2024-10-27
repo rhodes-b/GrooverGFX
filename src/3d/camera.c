@@ -39,3 +39,4 @@ struct Camera make_camera() {
         .ij_ray = ij_ray,
     };
 }
+

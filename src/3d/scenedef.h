@@ -24,3 +24,4 @@ struct Scene* get_scene();
 struct Camera* get_camera();
 
 #endif /* _GROOVER_SCENEDEF_H */
+

@@ -21,3 +21,4 @@ struct Camera {
 struct Camera make_camera();
 
 #endif /* _GROOVER_CAMERA_H */
+

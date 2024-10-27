@@ -6,3 +6,4 @@
 #include "ray3d.h"
 
 void raytrace(struct Scene* scene, struct Image* img);
+

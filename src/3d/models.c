@@ -399,3 +399,4 @@ void free_record(struct Record* r) {
     free(r->pts);
     // TODO r->normal
 }
+

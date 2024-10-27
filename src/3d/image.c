@@ -150,3 +150,4 @@ struct Image make_image(uint16_t width, uint16_t height) {
 void free_image(struct Image* img) {
     free(img->pixels);
 }
+

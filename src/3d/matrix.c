@@ -162,3 +162,4 @@ struct Matrix matrix_window(struct Point2F32 b1[2], struct Point2F32 b2[2]) {
 
     return res;
 }
+

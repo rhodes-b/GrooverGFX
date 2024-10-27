@@ -25,3 +25,4 @@ struct Ray make_ray(struct Point3F32 start, struct Vec3 dir);
 struct Interval make_interval(float low, float high);
 
 #endif /* _GROOVER_RAY3D_H */
+
