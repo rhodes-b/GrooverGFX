@@ -55,11 +55,12 @@ static struct Node* sphere_iter_polys(struct Sphere* s) {
         // leaked here?
         struct Point3F32* pts = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 3);
         pts[0] = s->northpole;
-        pts[1] = s->bands[i];
-        pts[2] = s->bands[i+1];
+        pts[1] = s->bands[get_band(s, 0) + i];
+        pts[2] = s->bands[get_band(s, 0) + i+1];
         r.pts = pts;
         r.n_pts = 3;
         r.color = s->color;
+        // TODO: add normal
 
         // leaked here?
         struct Node* n = make_node();
@@ -171,22 +172,25 @@ static void make_planes(struct Box* b) {
 }
 
 static struct Node* box_iter_polys(struct Box* b) {
-    struct Node* head = make_node();
-    struct Node* curr = head;
     struct Point3F32* pts1 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
     struct Point3F32* pts2 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
     struct Point3F32* pts3 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
     struct Point3F32* pts4 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
-
+    struct Point3F32* pts5 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
+    struct Point3F32* pts6 = (struct Point3F32*)malloc(sizeof(struct Point3F32) * 4);
     struct Point2F32 x_p = b->planes[0], y_p = b->planes[1], z_p = b->planes[2];
 
+
+    struct Node* head = make_node();
+    struct Node* curr = head;
+
+    // front, back, left, right, top, bottom
     pts1[0] = (struct Point3F32){x_p.x, y_p.x, z_p.y};
     pts1[1] = (struct Point3F32){x_p.y, y_p.x, z_p.y};
     pts1[2] = (struct Point3F32){x_p.y, y_p.y, z_p.y};
     pts1[3] = (struct Point3F32){x_p.x, y_p.y, z_p.y};
-
+    curr->data = (struct Record){ .pts = pts1, .n_pts = 4, .color = b->color, .normal = make_vec3(0, 0, 1) };
     struct Node* next = make_node();
-    curr->data = (struct Record){pts1, 4, b->color};
     curr->next = next;
     curr = next;
 
@@ -194,9 +198,8 @@ static struct Node* box_iter_polys(struct Box* b) {
     pts2[1] = (struct Point3F32){x_p.y, y_p.x, z_p.x};
     pts2[2] = (struct Point3F32){x_p.y, y_p.y, z_p.x};
     pts2[3] = (struct Point3F32){x_p.x, y_p.y, z_p.x};
-
+    curr->data = (struct Record){ .pts = pts2, .n_pts = 4, .color = b->color, .normal = make_vec3(0, 0, -1) };
     next = make_node();
-    curr->data = (struct Record){pts2, 4, b->color};
     curr->next = next;
     curr = next;
 
@@ -204,9 +207,8 @@ static struct Node* box_iter_polys(struct Box* b) {
     pts3[1] = (struct Point3F32){x_p.x, y_p.x, z_p.x};
     pts3[2] = (struct Point3F32){x_p.x, y_p.y, z_p.x};
     pts3[3] = (struct Point3F32){x_p.x, y_p.y, z_p.y};
-
+    curr->data = (struct Record){ .pts = pts3, .n_pts = 4, .color = b->color, .normal = make_vec3(-1, 0, 0) };
     next = make_node();
-    curr->data = (struct Record){pts3, 4, b->color};
     curr->next = next;
     curr = next;
 
@@ -214,8 +216,25 @@ static struct Node* box_iter_polys(struct Box* b) {
     pts4[1] = (struct Point3F32){x_p.y, y_p.x, z_p.x};
     pts4[2] = (struct Point3F32){x_p.y, y_p.y, z_p.x};
     pts4[3] = (struct Point3F32){x_p.y, y_p.y, z_p.y};
+    curr->data = (struct Record){ .pts = pts4, .n_pts = 4, .color = b->color, .normal = make_vec3(1, 0, 0) };
+    next = make_node();
+    curr->next = next;
+    curr = next;
 
-    curr->data = (struct Record){pts4, 4, b->color};
+    pts5[0] = (struct Point3F32){x_p.x, y_p.y, z_p.y};
+    pts5[1] = (struct Point3F32){x_p.y, y_p.y, z_p.y};
+    pts5[2] = (struct Point3F32){x_p.y, y_p.y, z_p.x};
+    pts5[3] = (struct Point3F32){x_p.x, y_p.y, z_p.x};
+    curr->data = (struct Record){ .pts = pts5, .n_pts = 4, .color = b->color, .normal = make_vec3(0, 1, 0) };
+    next = make_node();
+    curr->next = next;
+    curr = next;
+
+    pts6[0] = (struct Point3F32){x_p.x, y_p.x, z_p.y};
+    pts6[1] = (struct Point3F32){x_p.y, y_p.x, z_p.y};
+    pts6[2] = (struct Point3F32){x_p.y, y_p.x, z_p.x};
+    pts6[3] = (struct Point3F32){x_p.x, y_p.x, z_p.x};
+    curr->data = (struct Record){ .pts = pts6, .n_pts = 4, .color = b->color, .normal = make_vec3(0, -1, 0) };
     
     return head;
 }
@@ -328,6 +347,7 @@ static bool group_intersect(struct Group* g, struct Ray* r, struct Interval* i, 
                 }
                 break;
             default:
+                exit(1);
                 // unreachable
                 break;
         }
@@ -377,4 +397,5 @@ void free_sphere(struct Sphere* s) {
 
 void free_record(struct Record* r) {
     free(r->pts);
+    // TODO r->normal
 }

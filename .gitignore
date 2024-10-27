@@ -1,2 +1,6 @@
-.vscode
+# ide
+.cache/
+.vscode/
+
+# output
 build/

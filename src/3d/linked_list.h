@@ -3,8 +3,9 @@
 #define _GROOVER_LINKED_LIST_H
 
 #include "gfx_types.h"
-#include "ray3d.h"
-
+#include "math3d.h"
+// TODO: normals need to be an array...
+// always same size as pts?
 struct Record {
     struct Point3F32* pts;
     uint16_t n_pts;

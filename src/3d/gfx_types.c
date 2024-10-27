@@ -15,11 +15,28 @@ static struct Pixel quantize_pixel(struct Pixel* p, uint8_t val) {
     );
 }
 
+struct Pixel mul_pixel(struct Pixel *p, float val) {
+    return make_pixel(
+        p->r * val,
+        p->g * val,
+        p->b * val
+    );
+}
+struct Pixel add_pixel(struct Pixel *p, struct Pixel* other) {
+    return make_pixel(
+        p->r + other->r,
+        p->g + other->g,
+        p->b + other->b
+    );
+}
+
 struct Pixel make_pixel(float r, float g, float b) {
     return (struct Pixel) {
         .r = r,
         .g = g,
         .b = b,
         .quantize = quantize_pixel,
+        .mul = mul_pixel,
+        .add = add_pixel,
     };
 }

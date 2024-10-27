@@ -1,5 +1,5 @@
 
-#include <image.h>
+#include "image.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>

@@ -10,6 +10,7 @@ struct Scene {
     struct Group objects;
     struct Pixel background;
     float ambient;
+    struct Point3F32 light;
 
     void (*add)(struct Scene* s, struct Shape* obj);
 

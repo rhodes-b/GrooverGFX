@@ -3,6 +3,7 @@ set(PROJECT groover-gfx)
 project(${PROJECT})
 
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
 add_subdirectory(tests)
@@ -24,8 +25,11 @@ foreach(scene ${SCENES})
         ${scene}.c
     )
 
+    # target_compile_options(${scene} PRIVATE -fsanitize=address -g)
+
     target_link_libraries(${scene}
         groover-render3d
+        # -fsanitize=address
     )
 
 endforeach()

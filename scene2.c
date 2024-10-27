@@ -20,6 +20,11 @@ int main() {
     render_wireframe(scene, &img_wf);
     img_wf.save(&img_wf, "ppm/scene2-wf.ppm");
 
+    struct Image img_sig = make_image(640, 480);
+    render_signature(scene, &img_sig);
+    img_sig.save(&img_sig, "ppm/scene2-sig.ppm");
+    free_image(&img_sig);
+
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);
     img_rt.save(&img_rt, "ppm/scene2-rt.ppm");
