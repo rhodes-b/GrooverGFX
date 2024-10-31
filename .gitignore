@@ -3,4 +3,5 @@
 .vscode/
 
 # output
+.zig-cache/
 build/
