@@ -4,6 +4,7 @@ add_library(groover-render3d STATIC
     gfx_types.c
     image.c
     linked_list.c
+    materials.c
     math3d.c
     matrix.c
     models.c

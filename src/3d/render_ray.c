@@ -7,7 +7,7 @@
     _a > _b ? _a : _b; \
 })
 
-struct Pixel raycolor(struct Scene* scene, struct Ray* r, struct Interval* interval) {
+struct Pixel raycolor(struct Scene* scene, struct Ray* r, struct Interval* interval, uint8_t n_reflect) {
     struct Record info = {0};
     struct Pixel color = make_pixel(0, 0, 0);
     if(scene->objects.intersect(&scene->objects, r, interval, &info)) {
@@ -16,10 +16,11 @@ struct Pixel raycolor(struct Scene* scene, struct Ray* r, struct Interval* inter
         lvec = vec3_normalized(&lvec);
         float lamfact = MAX(0.0f, vec3_dot(&lvec, &info.normal));
         color = make_pixel(
-            info.color.r * lamfact + info.color.r * scene->ambient,
-            info.color.g * lamfact + info.color.g * scene->ambient,
-            info.color.b * lamfact + info.color.b * scene->ambient
+            info.color.r * lamfact,
+            info.color.g * lamfact,
+            info.color.b * lamfact
         );
+        color = color.add(&color, &scene->ambient);
     }
     else {
         color = scene->background;
@@ -37,7 +38,7 @@ void raytrace(struct Scene* scene, struct Image* img) {
         for(uint16_t i=0; i < img->width; i++) {
             struct Ray ray = scene->camera->ij_ray(scene->camera, i, j);
             struct Interval interval = make_interval(0.00, INFINITY);
-            struct Pixel color = raycolor(scene, &ray, &interval);
+            struct Pixel color = raycolor(scene, &ray, &interval, scene->reflections);
             color = color.quantize(&color, 255);
             img->set_pixel(img, (struct Point2I16){i, j}, color);
         }

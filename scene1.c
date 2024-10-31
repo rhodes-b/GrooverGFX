@@ -15,7 +15,7 @@ int main() {
     srand(time(0));
     struct Camera* cam = get_camera();
     struct Scene* scene = get_scene();
-    scene->light = (struct Point3F32){0, 550, -1200};
+    scene->add_light(scene, (struct Light){(struct Point3F32){0, 550, -1200}, make_pixel(1.0, 1.0, 1.0)});
     cam->set_perspective(cam, 60, 4./3, 50);
 
     struct Sphere s1 = make_sphere((struct Point3F32){0., 300., -1200.}, 200, make_pixel(1, 0, 0), 20, 20);
@@ -43,16 +43,6 @@ int main() {
     render_wireframe(scene, &img_wf);
     img_wf.save(&img_wf, "ppm/scene1-wf.ppm");
     free_image(&img_wf);
-
-    struct Image img_sig = make_image(640, 480);
-    render_signature(scene, &img_sig);
-    img_sig.save(&img_sig, "ppm/scene1-sig.ppm");
-    free_image(&img_sig);
-
-    struct Image img_phong = make_image(640, 480);
-    render_phong(scene, &img_phong);
-    img_phong.save(&img_phong, "ppm/scene1-phong.ppm");
-    free_image(&img_phong);
 
     struct Image img_rt = make_image(640, 480);
     raytrace(scene, &img_rt);

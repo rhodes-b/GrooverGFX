@@ -16,9 +16,6 @@ set(SCENES
     scene4
 )
 
-add_executable(2d-lib
-    main.c
-)
 
 foreach(scene ${SCENES})
     add_executable(${scene}
@@ -33,11 +30,6 @@ foreach(scene ${SCENES})
     )
 
 endforeach()
-
-
-target_link_libraries(2d-lib
-    groover-render2d
-)
 
 # Install Testing Framework
 include(ExternalProject)
