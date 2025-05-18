@@ -1,6 +1,9 @@
-# ide
-.cache/
-.vscode/
+# ignore everything by default
+*
+# unignore files in src
+!src/
+!src/**
 
-# output
-build/
+# top level unignores
+!shell.nix
+!build.zig
