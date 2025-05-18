@@ -21,14 +21,7 @@ var scene: Scene = undefined;
 var cam: camera.Camera = undefined;
 
 pub fn init_scene(alloc: std.mem.Allocator) !void {
-    cam = camera.Camera{
-        .eye = .{ .vals = @splat(0) },
-        .window = .{ .{ .vals = .{ -10, -10 } }, .{ .vals = .{ 10, 10 } } },
-        .distance = 10,
-        .dx = 0,
-        .dy = 0,
-    };
-
+    cam = camera.Camera{};
     scene = Scene{
         .camera = &cam,
         .objects = try models.Group.init(alloc),

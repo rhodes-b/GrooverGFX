@@ -36,7 +36,7 @@ pub const Camera = struct {
 
         const v = pt.sub(@as(*const gfx_types.Point(f32, 3), @ptrCast(&self.eye)));
 
-        return ray3d.Ray{ .start = self.eye, .dir = v };
+        return .{ .start = self.eye, .dir = v };
     }
 };
 
