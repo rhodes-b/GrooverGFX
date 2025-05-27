@@ -85,6 +85,11 @@ pub fn Vec(comptime n: u8) type {
             } };
         }
 
+        pub fn reflect(self: *const Self, norm: *const Self) Self {
+            const tmp = norm.mul(2 * self.dot(norm));
+            return self.sub(&tmp);
+        }
+
         pub fn mag(self: *const Self) f32 {
             var sum: f32 = 0;
             inline for (0..n) |i| {
