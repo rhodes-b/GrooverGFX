@@ -67,12 +67,20 @@ pub const Pixel = struct {
         };
     }
 
-    pub fn mul(self: *const Self, val: f32) Self {
-        return .{
-            .r = self.r * val,
-            .g = self.g * val,
-            .b = self.b * val,
-        };
+    pub fn mul(self: *const Self, val: anytype) Self {
+        if (@TypeOf(val) == Self) {
+            return .{
+                .r = self.r * val.r,
+                .g = self.g * val.g,
+                .b = self.b * val.b,
+            };
+        } else {
+            return .{
+                .r = self.r * val,
+                .g = self.g * val,
+                .b = self.b * val,
+            };
+        }
     }
 
     pub fn add(self: *const Self, other: *const Self) Self {

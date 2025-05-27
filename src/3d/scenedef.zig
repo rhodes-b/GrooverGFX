@@ -10,7 +10,9 @@ pub const Scene = struct {
     objects: models.Group,
     background: gfx_types.Pixel,
     ambient: f32,
-    light: gfx_types.Point(f32, 3),
+    shadows: bool,
+    reflections: u8,
+    lights: std.ArrayList(struct { gfx_types.Point(f32, 3), gfx_types.Pixel }),
 
     pub fn add(self: *Self, obj: *models.Shape) !void {
         try self.objects.add(obj.*);
@@ -27,8 +29,11 @@ pub fn init_scene(alloc: std.mem.Allocator) !void {
         .objects = try models.Group.init(alloc),
         .background = gfx_types.Pixel{ .r = 255, .g = 255, .b = 255 },
         .ambient = 0.2,
-        .light = cam.eye,
+        .shadows = false,
+        .reflections = 0,
+        .lights = @FieldType(Scene, "lights").init(alloc),
     };
+    try scene.lights.append(.{ cam.eye, .{ .r = 1, .g = 1, .b = 1 } });
 }
 
 pub fn deinit_scene(alloc: std.mem.Allocator) void {

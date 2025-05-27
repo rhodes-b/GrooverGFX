@@ -1,12 +1,13 @@
 const std = @import("std");
 const gfx_types = @import("gfx_types.zig");
+const materials = @import("materials.zig");
 const math3d = @import("math3d.zig");
 const ray3d = @import("ray3d.zig");
 
 // void free_record(struct Record* r);
 pub const Record = struct {
-    points: []gfx_types.Point(f32, 3),
-    color: gfx_types.Pixel,
+    point: gfx_types.Point(f32, 3),
+    color: materials.Material,
     normal: math3d.Vec(3),
     time: f32,
     // uvn ?
@@ -33,7 +34,7 @@ pub const Sphere = struct {
 
     pos: gfx_types.Point(f32, 3),
     radius: f32,
-    color: gfx_types.Pixel,
+    color: materials.Material,
     nlat: u8,
     nlong: u8,
     bands: []gfx_types.Point(f32, 3),
@@ -41,7 +42,7 @@ pub const Sphere = struct {
     northpole: gfx_types.Point(f32, 3),
     southpole: gfx_types.Point(f32, 3),
 
-    pub fn init(alloc: std.mem.Allocator, pos: gfx_types.Point(f32, 3), radius: f32, color: gfx_types.Pixel, nlat: u8, nlong: u8) !Self {
+    pub fn init(alloc: std.mem.Allocator, pos: gfx_types.Point(f32, 3), radius: f32, color: materials.Material, nlat: u8, nlong: u8) !Self {
         var s: Self = undefined;
         s.pos = pos;
         s.radius = radius;
@@ -66,7 +67,7 @@ pub const Sphere = struct {
         @compileError("TODO");
     }
 
-    pub fn intersect(self: *const Self, alloc: std.mem.Allocator, r: *ray3d.Ray, i: *ray3d.Interval, info: *Record) !bool {
+    pub fn intersect(self: *const Self, r: *const ray3d.Ray, i: *ray3d.Interval, info: *Record) bool {
         const a = r.dir.mag_sq();
         if (a == 0) {
             return false;
@@ -82,28 +83,23 @@ pub const Sphere = struct {
 
         const t1 = (-b - @sqrt(discrim)) / (2.0 * a);
         if (i.contains(t1)) {
-            try self.set_info(alloc, r, t1, info);
+            self.set_info(r, t1, info);
             return true;
         }
         const t2 = (-b + @sqrt(discrim)) / (2.0 * a);
         if (i.contains(t2)) {
-            try self.set_info(alloc, r, t2, info);
+            self.set_info(r, t2, info);
             return true;
         }
         return false;
     }
 
-    fn set_info(self: *const Self, alloc: std.mem.Allocator, r: *ray3d.Ray, t: f32, info: *Record) !void {
+    fn set_info(self: *const Self, r: *const ray3d.Ray, t: f32, info: *Record) void {
         info.time = t;
-        // TODO: do I need this? (Can i just always free it?)
-        // if(info->pts != NULL) {
-        //     free(info->pts);
-        // }
-        info.points = try alloc.alloc(gfx_types.Point(f32, 3), 1);
-        info.points[0] = r.point_at(t);
+        info.point = r.point_at(t);
 
         info.color = self.color;
-        const tmp = info.points[0].sub(&self.pos);
+        const tmp = info.point.sub(&self.pos);
         info.normal = tmp.normalized();
     }
 
@@ -142,10 +138,10 @@ pub const Box = struct {
 
     pos: gfx_types.Point(f32, 3),
     size: math3d.Vec(3),
-    color: gfx_types.Pixel,
+    color: materials.Material,
     planes: [3]gfx_types.Point(f32, 2),
 
-    pub fn init(pos: gfx_types.Point(f32, 3), size: math3d.Vec(3), color: gfx_types.Pixel) Self {
+    pub fn init(pos: gfx_types.Point(f32, 3), size: math3d.Vec(3), color: materials.Material) Self {
         var b: Self = undefined;
         b.pos = pos;
         b.size = size;
@@ -161,7 +157,7 @@ pub const Box = struct {
     }
 
     // TODO: should we use alloc for the record?
-    pub fn intersect(self: *const Self, alloc: std.mem.Allocator, r: *ray3d.Ray, i: *ray3d.Interval, info: *Record) !bool {
+    pub fn intersect(self: *const Self, r: *const ray3d.Ray, i: *ray3d.Interval, info: *Record) bool {
         var hit = false;
         for (0..3) |a| {
             if (r.dir.get_pos(@intCast(a)) == 0.00) {
@@ -181,8 +177,7 @@ pub const Box = struct {
                     hit = true;
                     i.high = t;
                     info.time = t;
-                    info.points = try alloc.alloc(gfx_types.Point(f32, 3), 1);
-                    info.points[0] = tmp;
+                    info.point = tmp;
                     info.color = self.color;
                     info.normal = math3d.Vec(3){ .vals = .{ 0, 0, 0 } };
                     info.normal.set_pos(@intCast(a), if (lh == 0) -1 else 1);
@@ -258,15 +253,15 @@ pub const Group = struct {
         _ = alloc;
     }
 
-    pub fn intersect(self: *const Self, alloc: std.mem.Allocator, r: *ray3d.Ray, i: *ray3d.Interval, info: *Record) !bool {
+    pub fn intersect(self: *const Self, r: *const ray3d.Ray, i: *ray3d.Interval, info: *Record) bool {
         var hit = false;
         for (self.objects.items) |obj| {
             switch (obj) {
-                .box => |b| if (try b.intersect(alloc, r, i, info)) {
+                .box => |b| if (b.intersect(r, i, info)) {
                     hit = true;
                     i.high = info.time;
                 },
-                .sphere => |s| if (try s.intersect(alloc, r, i, info)) {
+                .sphere => |s| if (s.intersect(r, i, info)) {
                     hit = true;
                     i.high = info.time;
                 },
