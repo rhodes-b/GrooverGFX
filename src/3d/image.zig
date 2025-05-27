@@ -103,9 +103,7 @@ pub const Image = struct {
 };
 
 test "Image Dimensions" {
-    // std.testing.allocator
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
     const width = 640;
     const height = 480;
@@ -117,8 +115,7 @@ test "Image Dimensions" {
 }
 
 test "Image get pixel" {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
     const img = try Image.init(alloc, 320, 240);
     defer img.deinit(alloc);
@@ -129,8 +126,7 @@ test "Image get pixel" {
 }
 
 test "Image set pixel" {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
     var img = try Image.init(alloc, 320, 240);
     defer img.deinit(alloc);
@@ -142,13 +138,12 @@ test "Image set pixel" {
 }
 
 test "Image load" {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
-    // TODO: support relative?
     const test_img_path = try std.fs.cwd().realpathAlloc(alloc, "src/assets/wartburg.ppm");
     defer alloc.free(test_img_path);
     const img = try Image.load(alloc, test_img_path);
+    defer img.deinit(alloc);
     try std.testing.expectEqual(640, img.width);
     try std.testing.expectEqual(470, img.height);
     const val = img.get_pixel(.{ .vals = .{ 350, 220 } });

@@ -32,7 +32,7 @@ pub fn init_scene(alloc: std.mem.Allocator) !void {
 }
 
 pub fn deinit_scene(alloc: std.mem.Allocator) void {
-    _ = alloc;
+    scene.objects.deinit(alloc);
 }
 
 pub fn get_scene() *Scene {

@@ -10,6 +10,7 @@ pub fn main() !void {
     const alloc = debug_alloc.allocator();
 
     try scenedef.init_scene(alloc);
+    defer scenedef.deinit_scene(alloc);
 
     var cam = scenedef.get_camera();
     const scene = scenedef.get_scene();
@@ -21,7 +22,13 @@ pub fn main() !void {
 
     try scene.add(&b);
 
+    const cwd = try std.fs.cwd().realpathAlloc(alloc, ".");
+    defer alloc.free(cwd);
+    const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene2-rt.ppm" });
+    defer alloc.free(img_path);
+
     var img = try image.Image.init(alloc, 640, 480);
+    defer img.deinit(alloc);
     try raytrace.raytrace(alloc, scene, &img);
-    try img.save("/home/brice/workspace/GrooverGFX/ppm/scene2-rt.ppm");
+    try img.save(img_path);
 }

@@ -232,10 +232,10 @@ const Matrix = struct {
 };
 
 test "Apply 1" {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
     var m = try Matrix.init(alloc, 2, 2);
+    defer m.deinit(alloc);
     try m.set(0, 0, 1);
     try m.set(0, 1, 2);
     try m.set(1, 0, 3);
@@ -250,10 +250,10 @@ test "Apply 1" {
 }
 
 test "Apply 2" {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
     var m = try Matrix.init(alloc, 2, 2);
+    defer m.deinit(alloc);
     try m.set(0, 0, -2);
     try m.set(0, 1, 3);
     try m.set(1, 0, 1);

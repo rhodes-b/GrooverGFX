@@ -7,3 +7,15 @@ const models = @import("3d/models.zig");
 const ray3d = @import("3d/ray3d.zig");
 const render_ray = @import("3d/render_ray.zig");
 const scenedef = @import("3d/scenedef.zig");
+
+test {
+    _ = camera;
+    _ = gfx_types;
+    _ = image;
+    _ = math3d;
+    _ = matrix;
+    _ = models;
+    _ = ray3d;
+    _ = render_ray;
+    _ = scenedef;
+}

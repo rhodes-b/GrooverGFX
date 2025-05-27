@@ -56,7 +56,7 @@ pub const Sphere = struct {
         return s;
     }
 
-    pub fn deinit(self: *Self, alloc: std.mem.Allocator) void {
+    pub fn deinit(self: *const Self, alloc: std.mem.Allocator) void {
         alloc.free(self.bands);
     }
 
@@ -127,6 +127,7 @@ pub const Sphere = struct {
             const r = self.radius * @cos(theta);
             const y = self.radius * @sin(theta) + cy;
             var pts: []gfx_types.Point(f32, 2) = try alloc.alloc(gfx_types.Point(f32, 2), self.nlong + 1);
+            defer alloc.free(pts);
             const center = gfx_types.Point(f32, 2){ .vals = .{ cx, cz } };
             circ_points(&center, r, pts);
             for (0..self.nlong + 1) |j| {
@@ -238,11 +239,11 @@ pub const Group = struct {
         };
     }
 
-    pub fn deinit(self: *const Self) void {
-        for (self.objects) |obj| {
+    pub fn deinit(self: *const Self, alloc: std.mem.Allocator) void {
+        for (self.objects.items) |obj| {
             switch (obj) {
                 .box => continue,
-                .sphere => |s| s.deinit(),
+                .sphere => |s| s.deinit(alloc),
             }
         }
         self.objects.deinit();
@@ -276,8 +277,7 @@ pub const Group = struct {
 };
 
 test "Create Sphere Basic" {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    const alloc = std.testing.allocator;
 
     var s = try Sphere.init(alloc, .{ .vals = .{ 0, 0, 0 } }, 1, .{ .r = 0, .g = 1, .b = 0 }, 7, 15);
     defer s.deinit(alloc);
