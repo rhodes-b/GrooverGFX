@@ -4,6 +4,13 @@
 !src/
 !src/**
 
+# unignore examples
+!examples/
+!examples/**
+
 # top level unignores
 !shell.nix
 !build.zig
+!build.zig.zon
+!LICENSE
+!README.md
