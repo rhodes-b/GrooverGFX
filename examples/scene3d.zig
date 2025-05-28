@@ -1,11 +1,12 @@
 const std = @import("std");
-const scenedef = @import("3d/scenedef.zig");
-const render_ray = @import("3d/render_ray.zig");
-const models = @import("3d/models.zig");
-const materials = @import("3d/materials.zig");
-const gfx_types = @import("3d/gfx_types.zig");
-const image = @import("3d/image.zig");
-const raytrace = @import("3d/render_ray.zig");
+
+const groove_gfx = @import("groove_gfx");
+const gfx_types = groove_gfx.gfx_types;
+const image = groove_gfx.image;
+const materials = groove_gfx.materials;
+const models = groove_gfx.models;
+const render_ray = groove_gfx.render_ray;
+const scenedef = groove_gfx.scenedef;
 
 pub fn main() !void {
     var debug_alloc = std.heap.DebugAllocator(.{}).init;
@@ -20,7 +21,10 @@ pub fn main() !void {
     scene.background = .{ .r = 0.5, .g = 0.5, .b = 1 };
     // scene.ambient = (.3, .3, .3)
     scene.ambient = 0.3;
-    scene.lights.items[0] = .{ .{ .vals = .{ -30, 50, 50 } }, .{ .r = 0.8, .g = 0.8, .b = 0.8 } };
+    scene.lights.items[0] = .{ .{ .vals = .{ -150, 200, 50 } }, .{ .r = 0.5, .g = 0.5, .b = 0.5 } };
+    try scene.lights.append(.{ .{ .vals = .{ 150, 50, 50 } }, .{ .r = 0.3, .g = 0.3, .b = 0.3 } });
+
+    scene.shadows = true;
 
     var b1 = models.Shape{
         .box = models.Box.init(.{ .vals = .{ -3, -2, -20 } }, .{ .vals = .{ 2, 2, 2 } }, materials.RED_PLASTIC),
@@ -43,11 +47,11 @@ pub fn main() !void {
 
     const cwd = try std.fs.cwd().realpathAlloc(alloc, ".");
     defer alloc.free(cwd);
-    const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene3b-rt.ppm" });
+    const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene3d-rt.ppm" });
     defer alloc.free(img_path);
 
     var img = try image.Image.init(alloc, 640, 480);
     defer img.deinit(alloc);
-    raytrace.raytrace(scene, &img);
+    render_ray.raytrace(scene, &img);
     try img.save(img_path);
 }
