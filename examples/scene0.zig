@@ -18,9 +18,14 @@ pub fn main() !void {
     var cam = scenedef.get_camera();
     const scene = scenedef.get_scene();
     cam.set_perspective(60, 1.3333, 5);
-    var s = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 0, 0, -10 } }, 2, materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 0 }), 20, 20),
-    };
+    var s = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 0, 0, -10 } },
+        2,
+        materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 0 }),
+        20,
+        20,
+    ) };
 
     try scene.add(&s);
 

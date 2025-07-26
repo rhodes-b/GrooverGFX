@@ -19,9 +19,11 @@ pub fn main() !void {
     const scene = scenedef.get_scene();
     cam.set_perspective(60, 1.3333, 5);
 
-    var b = models.Shape{
-        .box = models.Box.init(.{ .vals = .{ -3, -2, -10 } }, .{ .vals = .{ 2, 2, 2 } }, materials.make_material(gfx_types.Pixel{ .r = 1, .g = 0, .b = 0 })),
-    };
+    var b = models.Shape{ .box = models.Box.init(
+        .{ .vals = .{ -3, -2, -10 } },
+        .{ .vals = .{ 2, 2, 2 } },
+        materials.make_material(gfx_types.Pixel{ .r = 1, .g = 0, .b = 0 }),
+    ) };
 
     try scene.add(&b);
 

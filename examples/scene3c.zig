@@ -24,19 +24,33 @@ pub fn main() !void {
     scene.lights.items[0] = .{ .{ .vals = .{ -150, 200, 50 } }, .{ .r = 0.5, .g = 0.5, .b = 0.5 } };
     try scene.lights.append(.{ .{ .vals = .{ 150, 50, 50 } }, .{ .r = 0.3, .g = 0.3, .b = 0.3 } });
 
-    var b1 = models.Shape{
-        .box = models.Box.init(.{ .vals = .{ -3, -2, -20 } }, .{ .vals = .{ 2, 2, 2 } }, materials.RED_PLASTIC),
-    };
-    var s1 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 2.5, -2, -20 } }, 1, materials.SILVER, 20, 20),
-    };
-    var s2 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 0, 0, -25 } }, 3, materials.BRASS, 20, 20),
-    };
+    var b1 = models.Shape{ .box = models.Box.init(
+        .{ .vals = .{ -3, -2, -20 } },
+        .{ .vals = .{ 2, 2, 2 } },
+        materials.RED_PLASTIC,
+    ) };
+    var s1 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 2.5, -2, -20 } },
+        1,
+        materials.SILVER,
+        20,
+        20,
+    ) };
+    var s2 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 0, 0, -25 } },
+        3,
+        materials.BRASS,
+        20,
+        20,
+    ) };
 
-    var b2 = models.Shape{
-        .box = models.Box.init(.{ .vals = .{ 0, -3.5, -20 } }, .{ .vals = .{ 18, 1, 30 } }, materials.make_material(gfx_types.Pixel{ .r = 0.45, .g = 0.4, .b = 0.15 })),
-    };
+    var b2 = models.Shape{ .box = models.Box.init(
+        .{ .vals = .{ 0, -3.5, -20 } },
+        .{ .vals = .{ 18, 1, 30 } },
+        materials.make_material(gfx_types.Pixel{ .r = 0.45, .g = 0.4, .b = 0.15 }),
+    ) };
 
     try scene.add(&b1);
     try scene.add(&s1);

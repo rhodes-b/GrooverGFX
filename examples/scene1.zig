@@ -20,15 +20,30 @@ pub fn main() !void {
     scene.lights.items[0] = .{ .{ .vals = .{ 0, 550, -1200 } }, gfx_types.Pixel{ .r = 1, .g = 1, .b = 1 } };
     cam.set_perspective(60, 4.0 / 3.0, 5);
 
-    var s1 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 0, 300, -1200 } }, 200, materials.make_material(gfx_types.Pixel{ .r = 1, .g = 0, .b = 0 }), 20, 20),
-    };
-    var s2 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ -80, 150, -1200 } }, 200, materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 0 }), 20, 20),
-    };
-    var s3 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 70, 100, -1200 } }, 200, materials.make_material(gfx_types.Pixel{ .r = 0, .g = 0, .b = 1 }), 20, 20),
-    };
+    var s1 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 0, 300, -1200 } },
+        200,
+        materials.make_material(gfx_types.Pixel{ .r = 1, .g = 0, .b = 0 }),
+        20,
+        20,
+    ) };
+    var s2 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ -80, 150, -1200 } },
+        200,
+        materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 0 }),
+        20,
+        20,
+    ) };
+    var s3 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 70, 100, -1200 } },
+        200,
+        materials.make_material(gfx_types.Pixel{ .r = 0, .g = 0, .b = 1 }),
+        20,
+        20,
+    ) };
 
     try scene.add(&s1);
     try scene.add(&s2);
@@ -49,9 +64,14 @@ pub fn main() !void {
             const r = prng.random().float(f32);
             const g = prng.random().float(f32);
             const b = prng.random().float(f32);
-            s = models.Shape{
-                .sphere = try models.Sphere.init(alloc, .{ .vals = .{ x_f32, -300, z_f32 } }, 40, materials.make_material(gfx_types.Pixel{ .r = r, .g = g, .b = b }), 20, 20),
-            };
+            s = models.Shape{ .sphere = try models.Sphere.init(
+                alloc,
+                .{ .vals = .{ x_f32, -300, z_f32 } },
+                40,
+                materials.make_material(gfx_types.Pixel{ .r = r, .g = g, .b = b }),
+                20,
+                20,
+            ) };
             try scene.add(&s);
         }
     }

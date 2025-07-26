@@ -27,30 +27,50 @@ pub fn main() !void {
     scene.shadows = true;
     scene.reflections = 3;
 
-    var b1 = models.Shape{
-        .box = models.Box.init(.{ .vals = .{ -3, -2, -20 } }, .{ .vals = .{ 2, 2, 2 } }, materials.RED_PLASTIC),
-    };
+    var b1 = models.Shape{ .box = models.Box.init(
+        .{ .vals = .{ -3, -2, -20 } },
+        .{ .vals = .{ 2, 2, 2 } },
+        materials.RED_PLASTIC,
+    ) };
 
     var rsilver = materials.SILVER;
     rsilver.reflect = .{ .r = 0.5, .g = 0.5, .b = 0.5 };
     rsilver.diffuse = rsilver.diffuse.mul(0.5);
     rsilver.ambient = rsilver.ambient.mul(0.5);
 
-    var s1 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 2.5, -2, -20 } }, 1, rsilver, 20, 20),
-    };
+    var s1 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 2.5, -2, -20 } },
+        1,
+        rsilver,
+        20,
+        20,
+    ) };
 
     var rbrass = materials.BRASS;
     rbrass.reflect = .{ .r = 0.2, .g = 0.2, .b = 0.2 };
 
-    var s2 = models.Shape{
-        .sphere = try models.Sphere.init(alloc, .{ .vals = .{ 0, 0, -25 } }, 3, rbrass, 20, 20),
-    };
+    var s2 = models.Shape{ .sphere = try models.Sphere.init(
+        alloc,
+        .{ .vals = .{ 0, 0, -25 } },
+        3,
+        rbrass,
+        20,
+        20,
+    ) };
 
-    const bmat = materials.Material{ .diffuse = .{ .r = 0.4, .g = 0.4, .b = 0.4 }, .ambient = .{ .r = 0.4, .g = 0.4, .b = 0.4 }, .specular = .{ .r = 0.5, .g = 0.5, .b = 0.5 }, .shininess = 30, .reflect = .{ .r = 0.4, .g = 0.4, .b = 0.4 } };
-    var b2 = models.Shape{
-        .box = models.Box.init(.{ .vals = .{ 0, -3.5, -20 } }, .{ .vals = .{ 18, 1, 30 } }, bmat),
+    const bmat = materials.Material{
+        .diffuse = .{ .r = 0.4, .g = 0.4, .b = 0.4 },
+        .ambient = .{ .r = 0.4, .g = 0.4, .b = 0.4 },
+        .specular = .{ .r = 0.5, .g = 0.5, .b = 0.5 },
+        .shininess = 30,
+        .reflect = .{ .r = 0.4, .g = 0.4, .b = 0.4 },
     };
+    var b2 = models.Shape{ .box = models.Box.init(
+        .{ .vals = .{ 0, -3.5, -20 } },
+        .{ .vals = .{ 18, 1, 30 } },
+        bmat,
+    ) };
 
     try scene.add(&b1);
     try scene.add(&s1);
