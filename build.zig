@@ -39,5 +39,6 @@ pub fn build(b: *std.Build) void {
         });
         const example_run = b.addRunArtifact(example);
         example_step.dependOn(&example_run.step);
+        b.installArtifact(example);
     }
 }

@@ -42,7 +42,7 @@ pub const Sphere = struct {
     northpole: gfx_types.Point(f32, 3),
     southpole: gfx_types.Point(f32, 3),
 
-    pub fn init(alloc: std.mem.Allocator, pos: gfx_types.Point(f32, 3), radius: f32, color: materials.Material, nlat: u8, nlong: u8) !Self {
+    pub fn init(alloc: *std.mem.Allocator, pos: gfx_types.Point(f32, 3), radius: f32, color: materials.Material, nlat: u8, nlong: u8) !Self {
         var s: Self = undefined;
         s.pos = pos;
         s.radius = radius;
@@ -107,7 +107,7 @@ pub const Sphere = struct {
         return index * (self.nlong + 1);
     }
 
-    fn make_bands(self: *Self, alloc: std.mem.Allocator) !void {
+    fn make_bands(self: *Self, alloc: *std.mem.Allocator) !void {
         self.bands = try alloc.alloc(gfx_types.Point(f32, 3), @as(usize, @intCast(self.nlat)) * @as(usize, @intCast(self.nlong + 1)));
 
         const cx = self.pos.get_pos(0);
@@ -227,25 +227,25 @@ pub const Group = struct {
     const Self = @This();
     objects: std.ArrayList(Shape),
 
-    pub fn init(alloc: std.mem.Allocator) !Self {
-        const arr_list = std.ArrayList(Shape).init(alloc);
+    pub fn init() Self {
+        const arr_list: std.ArrayList(Shape) = .empty;
         return .{
             .objects = arr_list,
         };
     }
 
-    pub fn deinit(self: *const Self, alloc: std.mem.Allocator) void {
+    pub fn deinit(self: *Self, alloc: std.mem.Allocator) void {
         for (self.objects.items) |obj| {
             switch (obj) {
                 .box => continue,
                 .sphere => |s| s.deinit(alloc),
             }
         }
-        self.objects.deinit();
+        self.objects.deinit(alloc);
     }
 
-    pub fn add(self: *Self, model: Shape) !void {
-        try self.objects.append(model);
+    pub fn add(self: *Self, alloc: *std.mem.Allocator, model: Shape) !void {
+        try self.objects.append(alloc.*, model);
     }
 
     pub fn iter_polygons(self: *const Self, alloc: std.mem.Allocator) std.ArrayList(Record) {

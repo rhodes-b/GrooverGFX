@@ -9,11 +9,11 @@ const render_ray = groove_gfx.render_ray;
 const scenedef = groove_gfx.scenedef;
 
 pub fn main() !void {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    var debug_alloc: std.heap.DebugAllocator(.{}) = .init;
+    var alloc = debug_alloc.allocator();
 
-    try scenedef.init_scene(alloc);
-    defer scenedef.deinit_scene(alloc);
+    try scenedef.init_scene(&alloc);
+    defer scenedef.deinit_scene(&alloc);
 
     var cam = scenedef.get_camera();
     const scene = scenedef.get_scene();
@@ -21,7 +21,7 @@ pub fn main() !void {
     cam.set_perspective(60, 4.0 / 3.0, 5);
 
     var s1 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 0, 300, -1200 } },
         200,
         materials.make_material(gfx_types.Pixel{ .r = 1, .g = 0, .b = 0 }),
@@ -29,7 +29,7 @@ pub fn main() !void {
         20,
     ) };
     var s2 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ -80, 150, -1200 } },
         200,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 0 }),
@@ -37,7 +37,7 @@ pub fn main() !void {
         20,
     ) };
     var s3 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 70, 100, -1200 } },
         200,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 0, .b = 1 }),
@@ -45,13 +45,17 @@ pub fn main() !void {
         20,
     ) };
 
-    try scene.add(&s1);
-    try scene.add(&s2);
-    try scene.add(&s3);
+    try scene.add(&alloc, &s1);
+    try scene.add(&alloc, &s2);
+    try scene.add(&alloc, &s3);
+
+
+    var io_threaded: std.Io.Threaded = .init(alloc, .{});
+    var io = io_threaded.io();
 
     var prng = std.Random.DefaultPrng.init(blk: {
         var seed: u64 = undefined;
-        try std.posix.getrandom(std.mem.asBytes(&seed));
+        io.random(std.mem.asBytes(&seed));
         break :blk seed;
     });
 
@@ -65,17 +69,18 @@ pub fn main() !void {
             const g = prng.random().float(f32);
             const b = prng.random().float(f32);
             s = models.Shape{ .sphere = try models.Sphere.init(
-                alloc,
+                &alloc,
                 .{ .vals = .{ x_f32, -300, z_f32 } },
                 40,
                 materials.make_material(gfx_types.Pixel{ .r = r, .g = g, .b = b }),
                 20,
                 20,
             ) };
-            try scene.add(&s);
+            try scene.add(&alloc, &s);
         }
     }
-    const cwd = try std.fs.cwd().realpathAlloc(alloc, ".");
+
+    const cwd = try std.Io.Dir.cwd().realPathFileAlloc(io, ".", alloc);
     defer alloc.free(cwd);
     const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene1-rt.ppm" });
     defer alloc.free(img_path);
@@ -83,5 +88,5 @@ pub fn main() !void {
     var img = try image.Image.init(alloc, 640, 480);
     defer img.deinit(alloc);
     render_ray.raytrace(scene, &img);
-    try img.save(img_path);
+    try img.save(io, img_path);
 }

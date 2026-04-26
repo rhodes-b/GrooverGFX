@@ -9,11 +9,11 @@ const render_ray = groove_gfx.render_ray;
 const scenedef = groove_gfx.scenedef;
 
 pub fn main() !void {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    var debug_alloc: std.heap.DebugAllocator(.{}) = .init;
+    var alloc = debug_alloc.allocator();
 
-    try scenedef.init_scene(alloc);
-    defer scenedef.deinit_scene(alloc);
+    try scenedef.init_scene(&alloc);
+    defer scenedef.deinit_scene(&alloc);
 
     var cam = scenedef.get_camera();
     const scene = scenedef.get_scene();
@@ -22,7 +22,7 @@ pub fn main() !void {
     // scene.ambient = (.3, .3, .3)
     scene.ambient = 0.1;
     scene.lights.items[0] = .{ .{ .vals = .{ -150, 200, 50 } }, .{ .r = 0.5, .g = 0.5, .b = 0.5 } };
-    try scene.lights.append(.{ .{ .vals = .{ 150, 50, 50 } }, .{ .r = 0.3, .g = 0.3, .b = 0.3 } });
+    try scene.lights.append(alloc, .{ .{ .vals = .{ 150, 50, 50 } }, .{ .r = 0.3, .g = 0.3, .b = 0.3 } });
 
     scene.shadows = true;
     scene.reflections = 3;
@@ -39,7 +39,7 @@ pub fn main() !void {
     rsilver.ambient = rsilver.ambient.mul(0.5);
 
     var s1 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 2.5, -2, -20 } },
         1,
         rsilver,
@@ -51,7 +51,7 @@ pub fn main() !void {
     rbrass.reflect = .{ .r = 0.2, .g = 0.2, .b = 0.2 };
 
     var s2 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 0, 0, -25 } },
         3,
         rbrass,
@@ -72,12 +72,15 @@ pub fn main() !void {
         bmat,
     ) };
 
-    try scene.add(&b1);
-    try scene.add(&s1);
-    try scene.add(&s2);
-    try scene.add(&b2);
+    try scene.add(&alloc, &b1);
+    try scene.add(&alloc, &s1);
+    try scene.add(&alloc, &s2);
+    try scene.add(&alloc, &b2);
 
-    const cwd = try std.fs.cwd().realpathAlloc(alloc, ".");
+    var io_threaded: std.Io.Threaded = .init(alloc, .{});
+    const io = io_threaded.io();
+
+    const cwd = try std.Io.Dir.cwd().realPathFileAlloc(io, ".", alloc);
     defer alloc.free(cwd);
     const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene3e-rt.ppm" });
     defer alloc.free(img_path);
@@ -85,5 +88,5 @@ pub fn main() !void {
     var img = try image.Image.init(alloc, 640, 480);
     defer img.deinit(alloc);
     render_ray.raytrace(scene, &img);
-    try img.save(img_path);
+    try img.save(io, img_path);
 }

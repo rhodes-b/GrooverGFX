@@ -14,30 +14,30 @@ pub const Scene = struct {
     reflections: u8,
     lights: std.ArrayList(struct { gfx_types.Point(f32, 3), gfx_types.Pixel }),
 
-    pub fn add(self: *Self, obj: *models.Shape) !void {
-        try self.objects.add(obj.*);
+    pub fn add(self: *Self, alloc: *std.mem.Allocator, obj: *models.Shape) !void {
+        try self.objects.add(alloc, obj.*);
     }
 };
 
 var scene: Scene = undefined;
 var cam: camera.Camera = undefined;
 
-pub fn init_scene(alloc: std.mem.Allocator) !void {
-    cam = camera.Camera{};
+pub fn init_scene(alloc: *std.mem.Allocator) !void {
+    cam = .{};
     scene = Scene{
         .camera = &cam,
-        .objects = try models.Group.init(alloc),
+        .objects = models.Group.init(),
         .background = gfx_types.Pixel{ .r = 255, .g = 255, .b = 255 },
         .ambient = 0.2,
         .shadows = false,
         .reflections = 0,
-        .lights = @FieldType(Scene, "lights").init(alloc),
+        .lights = .empty,
     };
-    try scene.lights.append(.{ cam.eye, .{ .r = 1, .g = 1, .b = 1 } });
+    try scene.lights.append(alloc.*, .{ cam.eye, .{ .r = 1, .g = 1, .b = 1 } });
 }
 
-pub fn deinit_scene(alloc: std.mem.Allocator) void {
-    scene.objects.deinit(alloc);
+pub fn deinit_scene(alloc: *std.mem.Allocator) void {
+    scene.objects.deinit(alloc.*);
 }
 
 pub fn get_scene() *Scene {

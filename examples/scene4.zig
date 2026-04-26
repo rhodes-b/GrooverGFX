@@ -9,11 +9,11 @@ const render_ray = groove_gfx.render_ray;
 const scenedef = groove_gfx.scenedef;
 
 pub fn main() !void {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    var debug_alloc: std.heap.DebugAllocator(.{}) = .init;
+    var alloc = debug_alloc.allocator();
 
-    try scenedef.init_scene(alloc);
-    defer scenedef.deinit_scene(alloc);
+    try scenedef.init_scene(&alloc);
+    defer scenedef.deinit_scene(&alloc);
 
     var cam = scenedef.get_camera();
     const scene = scenedef.get_scene();
@@ -21,7 +21,7 @@ pub fn main() !void {
 
     // head
     var s1 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 0, 15, -30 } },
         5,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -29,7 +29,7 @@ pub fn main() !void {
         20,
     ) };
     var s2 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ -2, 15, -26 } },
         1,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 0, .b = 0 }),
@@ -37,7 +37,7 @@ pub fn main() !void {
         20,
     ) };
     var s3 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 2, 15, -26 } },
         1,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 0, .b = 0 }),
@@ -57,7 +57,7 @@ pub fn main() !void {
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
     ) };
     var s4 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ -20, 10, -30 } },
         2,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -65,7 +65,7 @@ pub fn main() !void {
         20,
     ) };
     var s5 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 20, 10, -30 } },
         2,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -82,7 +82,7 @@ pub fn main() !void {
 
     // legs
     var s6 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ -6, -10, -30 } },
         2,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -90,7 +90,7 @@ pub fn main() !void {
         20,
     ) };
     var s7 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 6, -10, -30 } },
         2,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -108,7 +108,7 @@ pub fn main() !void {
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
     ) };
     var s8 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ -6, -30, -28 } },
         2,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -116,7 +116,7 @@ pub fn main() !void {
         20,
     ) };
     var s9 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 6, -30, -28 } },
         2,
         materials.make_material(gfx_types.Pixel{ .r = 0, .g = 1, .b = 1 }),
@@ -124,25 +124,28 @@ pub fn main() !void {
         20,
     ) };
 
-    try scene.add(&s1);
-    try scene.add(&s2);
-    try scene.add(&s3);
+    try scene.add(&alloc, &s1);
+    try scene.add(&alloc, &s2);
+    try scene.add(&alloc, &s3);
 
-    try scene.add(&b1);
-    try scene.add(&b2);
-    try scene.add(&s4);
-    try scene.add(&s5);
+    try scene.add(&alloc, &b1);
+    try scene.add(&alloc, &b2);
+    try scene.add(&alloc, &s4);
+    try scene.add(&alloc, &s5);
 
-    try scene.add(&b3);
+    try scene.add(&alloc, &b3);
 
-    try scene.add(&s6);
-    try scene.add(&s7);
-    try scene.add(&b4);
-    try scene.add(&b5);
-    try scene.add(&s8);
-    try scene.add(&s9);
+    try scene.add(&alloc, &s6);
+    try scene.add(&alloc, &s7);
+    try scene.add(&alloc, &b4);
+    try scene.add(&alloc, &b5);
+    try scene.add(&alloc, &s8);
+    try scene.add(&alloc, &s9);
 
-    const cwd = try std.fs.cwd().realpathAlloc(alloc, ".");
+    var io_threaded: std.Io.Threaded = .init(alloc, .{});
+    const io = io_threaded.io();
+
+    const cwd = try std.Io.Dir.cwd().realPathFileAlloc(io, ".", alloc);
     defer alloc.free(cwd);
     const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene4-rt.ppm" });
     defer alloc.free(img_path);
@@ -150,5 +153,5 @@ pub fn main() !void {
     var img = try image.Image.init(alloc, 640, 480);
     defer img.deinit(alloc);
     render_ray.raytrace(scene, &img);
-    try img.save(img_path);
+    try img.save(io, img_path);
 }

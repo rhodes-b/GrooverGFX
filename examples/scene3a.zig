@@ -9,11 +9,11 @@ const render_ray = groove_gfx.render_ray;
 const scenedef = groove_gfx.scenedef;
 
 pub fn main() !void {
-    var debug_alloc = std.heap.DebugAllocator(.{}).init;
-    const alloc = debug_alloc.allocator();
+    var debug_alloc: std.heap.DebugAllocator(.{}) = .init;
+    var alloc = debug_alloc.allocator();
 
-    try scenedef.init_scene(alloc);
-    defer scenedef.deinit_scene(alloc);
+    try scenedef.init_scene(&alloc);
+    defer scenedef.deinit_scene(&alloc);
 
     var cam = scenedef.get_camera();
     const scene = scenedef.get_scene();
@@ -28,7 +28,7 @@ pub fn main() !void {
         materials.RED_PLASTIC,
     ) };
     var s1 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 2.5, -2, -20 } },
         1,
         materials.SILVER,
@@ -36,7 +36,7 @@ pub fn main() !void {
         20,
     ) };
     var s2 = models.Shape{ .sphere = try models.Sphere.init(
-        alloc,
+        &alloc,
         .{ .vals = .{ 0, 0, -25 } },
         3,
         materials.BRASS,
@@ -50,12 +50,16 @@ pub fn main() !void {
         materials.make_material(gfx_types.Pixel{ .r = 0.9, .g = 0.8, .b = 0.3 }),
     ) };
 
-    try scene.add(&b1);
-    try scene.add(&s1);
-    try scene.add(&s2);
-    try scene.add(&b2);
+    try scene.add(&alloc, &b1);
+    try scene.add(&alloc, &s1);
+    try scene.add(&alloc, &s2);
+    try scene.add(&alloc, &b2);
 
-    const cwd = try std.fs.cwd().realpathAlloc(alloc, ".");
+
+    var io_threaded: std.Io.Threaded = .init(alloc, .{});
+    const io = io_threaded.io();
+
+    const cwd = try std.Io.Dir.cwd().realPathFileAlloc(io, ".", alloc);
     defer alloc.free(cwd);
     const img_path = try std.fs.path.join(alloc, &.{ cwd, "ppm/scene3a-rt.ppm" });
     defer alloc.free(img_path);
@@ -63,5 +67,5 @@ pub fn main() !void {
     var img = try image.Image.init(alloc, 640, 480);
     defer img.deinit(alloc);
     render_ray.raytrace(scene, &img);
-    try img.save(img_path);
+    try img.save(io, img_path);
 }

@@ -38,9 +38,9 @@ pub const Image = struct {
         }
     }
 
-    pub fn load(alloc: std.mem.Allocator, fname: []const u8) !Self {
-        var f = try std.fs.openFileAbsolute(fname, .{});
-        defer f.close();
+    pub fn load(alloc: std.mem.Allocator, io: std.Io, fname: []const u8) !Self {
+        var f = try std.Io.Dir.openFileAbsolute(io, fname, .{});
+        defer f.close(io);
 
         var header: [PPM_HEADER.len]u8 = @splat(0);
         _ = try f.read(&header);
@@ -49,7 +49,7 @@ pub const Image = struct {
         }
 
         var width_buf: [32]u8 = @splat(0);
-        var width_stream = std.io.FixedBufferStream([]u8){ .buffer = &width_buf, .pos = 0 };
+        var width_stream: std.Io.Writer = .fixed(&width_buf);
         const width_writer = width_stream.writer();
         const file_reader = f.reader();
         try file_reader.streamUntilDelimiter(width_writer, ' ', null);
@@ -86,14 +86,17 @@ pub const Image = struct {
         };
     }
 
-    pub fn save(self: *const Self, fname: []const u8) !void {
-        var f = try std.fs.createFileAbsolute(fname, .{});
-        defer f.close();
-        const f_write = f.writer();
-        try f_write.print(PPM_HEADER, .{});
-        try f_write.print("{d} {d}\n", .{ self.width, self.height });
-        try f_write.print("255\n", .{});
-        try f.writeAll(self.pixels);
+    pub fn save(self: *const Self, io: std.Io, fname: []const u8) !void {
+        var f = try std.Io.Dir.createFileAbsolute(io, fname, .{});
+        defer f.close(io);
+        var buf: [1024]u8 = undefined;
+        var f_write = f.writer(io, &buf);
+        var writer = &f_write.interface;
+        try writer.writeAll(PPM_HEADER);
+        try writer.print("{d} {d}\n", .{ self.width, self.height });
+        try writer.print("255\n", .{});
+        try writer.writeAll(self.pixels);
+        try writer.flush();
     }
 
     fn locate_pixel_index(self: *const Self, pt: gfx_types.Point(i16, 2)) usize {
@@ -139,10 +142,11 @@ test "Image set pixel" {
 
 test "Image load" {
     const alloc = std.testing.allocator;
+    const io = std.testing.io_instance;
 
     const test_img_path = try std.fs.cwd().realpathAlloc(alloc, "src/assets/wartburg.ppm");
     defer alloc.free(test_img_path);
-    const img = try Image.load(alloc, test_img_path);
+    const img = try Image.load(alloc, io, test_img_path);
     defer img.deinit(alloc);
     try std.testing.expectEqual(640, img.width);
     try std.testing.expectEqual(470, img.height);
